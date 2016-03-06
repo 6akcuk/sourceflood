@@ -2,7 +2,7 @@
 
 namespace SourceFlood\Validator;
 
-class IfNot
+class IfNot extends BaseValidator
 {
 	public function validate($data, $field, $value, $check = null) 
 	{

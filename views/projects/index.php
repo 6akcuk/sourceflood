@@ -20,9 +20,11 @@ use SourceFlood\View;
 		<tr>
 			<td class="check-column"></td>
 			<th>Name</th>
-			<th>Current Iteration</th>
+			<th>Current Post</th>
+			<th>Max Posts</th>
 			<th>Created At</th>
-			<th>Finished</th>
+			<th>Last Update</th>
+			<th>Status</th>
 		</tr>
 		</thead>
 		<tbody>
@@ -35,11 +37,12 @@ use SourceFlood\View;
 					</strong>
 					<div class="row-actions">
 						<span class="trash">
-							<a class="submitdelete" href="<?= admin_url('admin.php?page=sourceflood_projects&action=delete&id='. $project->id .'&noheader=true') ?>">Delete project and all posts/pages</a>
+							<a class="submitdelete" href="<?= admin_url('admin.php?page=sourceflood_projects&action=delete&id='. $project->id .'&noheader=true') ?>" onclick="return confirm('This action will delete project and all generated posts/pages')">Delete project and all posts/pages</a>
 						</span>
 					</div>
 				</td>
 				<td><?= $project->iteration ?></td>
+				<td><?= $project->max_iterations ?></td>
 				<td>
 					<?php
 						$date = new DateTime($project->created_at);
@@ -48,7 +51,14 @@ use SourceFlood\View;
 					?>
 				</td>
 				<td>
-					
+					<?php
+						$date = new DateTime($project->updated_at);
+
+						echo $date->format('d/m/Y H:i:s');
+					?>
+				</td>
+				<td>
+					<strong><?= ($project->iteration == $project->max_iterations) ? 'Finished' : 'Processing' ?></strong>
 				</td>
 			</tr>
 			<?php endforeach; ?>

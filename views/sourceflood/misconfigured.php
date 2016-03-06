@@ -1,6 +1,6 @@
 <div class="PostMisconfigured">
   <p>
-    For Cronjob Scheduler to run reliably, you need to disable the default WordPress
+    For SourceFlood to run reliably, you need to disable the default WordPress
     cron job schedules and setup a unix cronjob. Please add the following to the end of your
     <span style="font-family: monospace">
       <?php echo esc_html('wp-config.php') ?>

@@ -2,10 +2,10 @@
 
 namespace SourceFlood\Validator;
 
-class Required implements IValidator
+class Required extends BaseValidator
 {
 	public static function validate($data, $field)
 	{
-		return isset($data[$field]) && !empty($data[$field]) ? true : _(ucfirst($field) ." is required");
+		return isset($data[$field]) && !empty($data[$field]) ? true : _(self::fieldName($field) ." is required");
 	}
 }

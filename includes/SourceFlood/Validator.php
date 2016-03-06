@@ -7,6 +7,25 @@ use SourceFlood\Validator\ValidatorException;
 class Validator
 {
 	public static $errorsKey = 'sourceflood.validator.errors';
+	public static $oldKey = 'sourceflood.validator.old';
+	
+	public static function old($field, $default = null) 
+	{
+		if (isset($_SESSION[self::$oldKey]) && isset($_SESSION[self::$oldKey][$field])) {
+			$value = $_SESSION[self::$oldKey][$field];
+			unset($_SESSION[self::$oldKey][$field]);
+			
+			return $value;
+		} 
+		else {
+			return $default;
+		}
+	}
+
+	public function saveOld($field, $value) 
+	{
+		$_SESSION[self::$oldKey][$field] = $value;
+	}
 
 	public static function error($field, $message) 
 	{
@@ -68,6 +87,13 @@ class Validator
 				} else {
 					throw new ValidatorException("Validator $rule: class $validatorClass doesn't exist");
 				}
+			}
+		}
+
+		// Save old form values
+		if (!$success) {
+			foreach ($data as $field => $value) {
+				self::saveOld($field, $value);
 			}
 		}
 

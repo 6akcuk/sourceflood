@@ -77,7 +77,7 @@ class Spintax
 			}
 		}
 
-		return $vars;
+		return $level == 0 && $vars == 0 ? 1 : $vars;
 	}
 
 	/**
@@ -239,72 +239,12 @@ class Spintax
 		return $template;
 	}
 
-
-
-	/*public static function build($spintax) 
+	public static function geo($text, $geo) 
 	{
-		$table = array();
-
-		if (isset($spintax['vars'])) {
-			foreach ($spintax['vars'] as $key => $var) {
-				if (is_array($var)) {
-					$table = array_merge($table, self::build($var));
-				} else {
-					$table[] = array('item' => 1, 'max' => sizeof($spintax));
-				}
-			}
-		} else {
-			foreach ($spintax as $key => $var) {
-				if (is_array($var)) {
-					$table = array_merge($table, self::build($var));
-				} else {
-					$table[] = array('item' => 1, 'max' => sizeof($spintax));
-				}
-			}
+		foreach ($geo as $tag => $value) {
+			$text = preg_replace("/@$tag(?![a-z\-])/", $value, $text);
 		}
 
-		return $table;
-	}*/
-
-	/*public static function math($spintax, $table, $iteration = 1) 
-	{
-		function __inc($table, $next) {
-			for ($i = $next; $i <= sizeof($table); $i++) {
-				$table[$i]['item']++;
-
-				if ($table[$i]['item'] <= $table[$i]['max']) return $table;
-				else $table[$i]['item'] = 1;
-			}
-
-			return $table;
-		}
-
-		for ($i = 1; $i < $iteration; $i++) {
-			$table[0]['item']++;
-
-			if ($table[0]['item'] > $table[0]['max'] && isset($table[1])) {
-				$table[0]['item'] = 1;
-
-				$table = __inc($table, 1);
-			}
-		}
-
-		return $table;
+		return $text;
 	}
-
-	public static function make($spintax, $phraseTable, $vars = 0) 
-	{
-		$phrase = $spintax['template'];
-
-		foreach ($spintax['vars'] as $key => $var) {
-			if (isset($var['template'])) {
-				$phrase = str_replace("$$". $key, self::make($var, $phraseTable, $key), $phrase);
-				//$table = array_merge($table, self::build($var));
-			} else {
-				$phrase = str_replace("$$". $key, $var[$phraseTable[$key]['item'] - 1], $phrase);
-			}
-		}
-
-		return $phrase;
-	}*/
 }

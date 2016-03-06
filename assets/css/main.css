@@ -39,9 +39,15 @@
 }
 
 .PostMisconfigured {
-	
+	background: #fff;
+    padding: 10px 20px;
+    border: 1px solid #ddd;
 }
 
+
+.full-width {
+	width: 100%;
+}
 
 /* */
 
@@ -83,6 +89,7 @@
 	display: block;
 	padding-top: 10px;
     font-size: 14px;
+    color: #CC332A;
 }
 
 .PostForm__title-wrap {
@@ -103,4 +110,12 @@
 
 .PostForm__buttons {
 	margin-top: 20px;
+}
+
+.PostForm__boxes {
+	padding-top: 40px;
+}
+
+.PostForm__boxes .form-table:not(:first-child) {
+    border-top: 1px dashed #ddd;
 }

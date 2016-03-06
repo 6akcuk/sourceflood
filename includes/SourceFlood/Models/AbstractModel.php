@@ -67,6 +67,8 @@ abstract class AbstractModel
 			}
 		}
 
+		$fields[] = "updated_at = NOW()";
+
 		$sql = "UPDATE ". $this->getTable();
 		$sql .= " SET ". implode(", ", $fields);
 		$sql .= " WHERE id = $id";

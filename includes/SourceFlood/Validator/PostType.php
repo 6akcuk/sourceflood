@@ -2,7 +2,7 @@
 
 namespace SourceFlood\Validator;
 
-class PostType implements IValidator
+class PostType extends BaseValidator
 {
 	public static function validate($data, $field) 
 	{
