@@ -1,10 +1,10 @@
 <?php
 /*
-Plugin Name: Source Flood
+Plugin Name: Work Horse
 Plugin URI: 
 Description: Creates a large number of pages/posts and customize them to rank in Google.
 Author: Denis Sirashev
-Version: 0.3.2
+Version: 0.4.1
 */
 
 define('SOURCEFLOOD_ROOT', dirname(__FILE__));

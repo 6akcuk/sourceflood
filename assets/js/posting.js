@@ -1,7 +1,6 @@
 /**	
  * For posting module
  */
-
 (function($) {
 
 	// On Ready
@@ -18,6 +17,15 @@
 			}
 		});
 
+		// On-Page SEO
+		$('#schema').change(function() {
+			if ($(this).is(':checked')) {
+				$('#schema-wrap').show();
+			} else {
+				$('#schema-wrap').hide();
+			}
+		});
+
 		// Dripfeed
 		$('#dripfeed-enabler').change(function() {
 			if ($(this).is(':checked')) {
@@ -31,8 +39,10 @@
 		$('#local-seo-enabler').change(function() {
 			if ($(this).is(':checked')) {
 				$('#local-seo-wrap').show();
+				$('#exif-enabler').attr('disabled', false);
 			} else {
 				$('#local-seo-wrap').hide();
+				$('#exif-enabler').attr('disabled', true);
 			}
 		});
 
@@ -101,7 +111,7 @@
 				core: {
 					'data': {
 						url: function(node) {
-							return '/index.php?api=sourceflood&action=geo-tree&country='+ $('#local-country').val();
+							return '/index.php?api=workhorse&action=geo-tree&country='+ $('#local-country').val();
 						},
 						data: function(node) {
 							return {id: node.id};

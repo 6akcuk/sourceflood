@@ -29,7 +29,7 @@ function sourceflood_posting()
 			// Dripfeed
 			'dripfeed_x' => 'required_if:dripfeed_enabler|numeric'
 		))) {
-			wp_redirect('/wp-admin/admin.php?page=sourceflood&action=create_post');
+			wp_redirect('/wp-admin/admin.php?page=workhorse&action=create_post');
 			exit;
 		}
 
@@ -65,9 +65,31 @@ function sourceflood_posting()
 		}
 
 		// Local SEO
+		$geo_iterations = 1;
+
 		if (isset($_POST['local_seo_enabler'])) {
 			$options_data['local_geo_country'] = $_POST['local_country'];
 			$options_data['local_geo_locations'] = json_decode(stripslashes($_POST['local_geo_locations']), true);
+
+			$geo_iterations = sizeof($options_data['local_geo_locations']);
+			if ($geo_iterations == 0) $geo_iterations = 1;
+		}
+
+		// Schema SEO
+		if (isset($_POST['schema'])) {
+			$options_data['schema_business'] = $_POST['schema_business'];
+			$options_data['schema_description'] = $_POST['schema_description'];
+			$options_data['schema_email'] = $_POST['schema_email'];
+			$options_data['schema_telephone'] = $_POST['schema_telephone'];
+			$options_data['schema_social'] = $_POST['schema_social'];
+			$options_data['schema_rating'] = $_POST['schema_rating'];
+			$options_data['schema_address'] = $_POST['schema_address'];
+
+			$iterations[] = Spintax::count(Spintax::parse($options_data['schema_business']));
+			$iterations[] = Spintax::count(Spintax::parse($options_data['schema_description']));
+			$iterations[] = Spintax::count(Spintax::parse($options_data['schema_email']));
+			$iterations[] = Spintax::count(Spintax::parse($options_data['schema_social']));
+			$iterations[] = Spintax::count(Spintax::parse($options_data['schema_address']));
 		}
 
 		// Dripfeed Feature
@@ -76,19 +98,24 @@ function sourceflood_posting()
 			$options_data['dripfeed_x'] = $_POST['dripfeed_x'];
 		}
 
+		// Image EXIF
+		if (isset($_POST['exif_enabler'])) {
+			$options_data['exif_enabled'] = true;
+		}
+
 		$data = array(
 			'name' => $name,
 			'content' => json_encode($project_data),
 			'options' => json_encode($options_data),
 			'iteration' => 1,
 			'spintax_iterations' => max($iterations),
-			'max_iterations' => max($iterations) * sizeof($options_data['local_geo_locations'])
+			'max_iterations' => max($iterations) * $geo_iterations
 		);
 		
 		$project_id = $model->create($data);
 
 		FlashMessage::success('Project successfully created. It will generate '. $data['max_iterations'] .' posts/pages.');
-		wp_redirect('/wp-admin/admin.php?page=sourceflood');
+		wp_redirect('/wp-admin/admin.php?page=workhorse');
 		exit;
 
 	endif;

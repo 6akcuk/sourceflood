@@ -1,11 +1,7 @@
 <?php
 
 // Libraries
-include_once 'includes/SourceFlood/Autoloader.php';
-
-new SourceFlood\Autoloader();
-
-session_start();
+include_once 'autoloader.php';
 
 // Other parts
 include_once 'includes/installer.php';
@@ -19,3 +15,4 @@ include_once 'includes/functions.php';
 include_once 'includes/modules.php';
 include_once 'includes/menus.php';
 include_once 'includes/seo.php';
+include_once 'includes/settings.php';

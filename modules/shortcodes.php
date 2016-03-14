@@ -25,8 +25,12 @@ function sourceflood_handle_shortcode($attributes, $content = null, $called = nu
 	exit;*/
 
 	$shortcode = $model->getByShortcode($called);
+	if (isJSON($shortcode->content)) {
+		$images = json_decode($shortcode->content);
+		$image = $images[array_rand($images)];
 
-	return $shortcode->content;
+		return '<img src="'. $image->url .'" alt="'. $image->tags .'">';
+	} else return $shortcode->content;
 }
 
 function sourceflood_shortcodes() {
@@ -95,14 +99,14 @@ function sourceflood_shortcodes() {
 			'type' => 'required',
 			'content' => 'required'
 		))) {
-			wp_redirect('/wp-admin/admin.php?page=sourceflood_shortcodes&action=create');
+			wp_redirect('/wp-admin/admin.php?page=workhorse_shortcodes&action=create');
 			exit;
 		}
 
 		$id = $model->create($_POST);
 
 		FlashMessage::success('Shortcode created.');
-		wp_redirect('/wp-admin/admin.php?page=sourceflood_shortcodes');
+		wp_redirect('/wp-admin/admin.php?page=workhorse_shortcodes');
 		exit;
 
 	elseif ($action == 'edit'):
@@ -121,14 +125,14 @@ function sourceflood_shortcodes() {
 			'shortcode' => 'required|unique:'. $model->getTable() .',shortcode,'. $id,
 			'content' => 'if_not:dynamic,'. $shortcode->type
 		))) {
-			wp_redirect('/wp-admin/admin.php?page=sourceflood_shortcodes&action=edit&id='. $id);
+			wp_redirect('/wp-admin/admin.php?page=workhorse_shortcodes&action=edit&id='. $id);
 			exit;
 		}
 
 		$model->update($_POST, $id);
 
 		FlashMessage::success('Shortcode updated.');
-		wp_redirect('/wp-admin/admin.php?page=sourceflood_shortcodes&action=edit&id='. $id);
+		wp_redirect('/wp-admin/admin.php?page=workhorse_shortcodes&action=edit&id='. $id);
 		exit;
 
 	elseif ($action == 'delete'):
@@ -137,7 +141,7 @@ function sourceflood_shortcodes() {
 		$model->delete($id);
 
 		FlashMessage::success('Shortcode deleted.');
-		wp_redirect('/wp-admin/admin.php?page=sourceflood_shortcodes');
+		wp_redirect('/wp-admin/admin.php?page=workhorse_shortcodes');
 		exit;
 		
 	endif;

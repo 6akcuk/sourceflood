@@ -1,9 +1,14 @@
 <?php
 
+use SourceFlood\Spintax;
+
 function sourceflood_configured() {
 	return defined('DISABLE_WP_CRON');
 }
 
+/**
+ * Get current iteration for field.
+ */
 function sourceflood_get_current_subiteration($current, $submax) {
 	$double = $current / $submax;
 	if (strstr($double, '.')) $double -= floor($double);
@@ -12,10 +17,16 @@ function sourceflood_get_current_subiteration($current, $submax) {
 	return $submax * $double;
 }
 
+/**
+ * Get current spintax iteration for field.
+ */
 function sourceflood_get_spintax_subiteration($max, $project, $iteration) {
 	return $max < $project->spintax_iterations ? sourceflood_get_current_subiteration($iteration, $max) : $iteration;
 }
 
+/**
+ * Get geo information from geopath.
+ */
 function sourceflood_get_geodata($country, $geopath) {
 	global $wpdb;
 
@@ -50,4 +61,22 @@ function sourceflood_get_geodata($country, $geopath) {
 	}
 
 	return $result;
+}
+
+function sourceflood_spintax_the_field($value, $project, $spintaxIteration, $geo = false) {
+	$spintax = Spintax::parse($value);
+	$max = Spintax::count($spintax);
+
+	$iteration = sourceflood_get_spintax_subiteration($max, $project, $spintaxIteration);
+
+	$text = Spintax::make($value, $iteration, $spintax);
+	if ($geo) $text = Spintax::geo($text, $geoData);
+
+	return $text;
+}
+
+if (!function_exists('isJSON')) {
+	function isJSON($string){
+		return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
+	}
 }

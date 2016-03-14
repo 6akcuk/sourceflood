@@ -66,6 +66,8 @@ function sourceflood_parse_tasks() {
 			$contentSpintax = Spintax::parse($content);
 			$contentMax = Spintax::count($contentSpintax);
 
+			$posts = min($posts, $project->max_iterations);
+
 			for ($i = 1; $i <= $posts; $i++) {
 				if ($project->iteration == $project->max_iterations + 1) break;
 
@@ -86,7 +88,7 @@ function sourceflood_parse_tasks() {
 
 				$contentText = Spintax::make($content, $contentIteration, $contentSpintax);
 				if ($geo) $contentText = Spintax::geo($contentText, $geoData);
-
+				
 				$post_id = wp_insert_post([
 		            'post_title' => $titleText,
 		            'post_name' => sanitize_title($titleText),
@@ -100,40 +102,56 @@ function sourceflood_parse_tasks() {
 
 				add_post_meta($post_id, 'sourceflood_project_id', $project->id);
 
+				// On-Page SEO Section
 				if (isset($options['custom_title'])) {
-					$customtitleSpintax = Spintax::parse($options['custom_title']);
-					$customtitleMax = Spintax::count($customtitleSpintax);
+					$customTitleText = sourceflood_spintax_the_field($options['custom_title'], $project, $spintaxIteration, $geo);
 
-					$customtitleIteration = sourceflood_get_spintax_subiteration($customtitleMax, $project, $spintaxIteration);
-
-					$customtitleText = Spintax::make($options['custom_title'], $customtitleIteration, $customtitleSpintax);
-					if ($geo) $customtitleText = Spintax::geo($customtitleText, $geoData);
-
-					add_post_meta($post_id, 'sourceflood_custom_title', $customtitleText);
+					add_post_meta($post_id, 'sourceflood_custom_title', $customTitleText);
 				}
 				if (isset($options['custom_description'])) {
-					$descriptionSpintax = Spintax::parse($options['custom_description']);
-					$descriptionMax = Spintax::count($descriptionSpintax);
+					$customDescriptionText = sourceflood_spintax_the_field($options['custom_description'], $project, $spintaxIteration, $geo);
 
-					$descriptionIteration = sourceflood_get_spintax_subiteration($descriptionMax, $project, $spintaxIteration);
-
-					$descriptionText = Spintax::make($options['custom_description'], $descriptionIteration, $descriptionSpintax);
-					if ($geo) $descriptionText = Spintax::geo($descriptionText, $geoData);
-
-					add_post_meta($post_id, 'sourceflood_custom_description', $descriptionText);
+					add_post_meta($post_id, 'sourceflood_custom_description', $customDescriptionText);
 				}
 				if (isset($options['custom_keywords'])) {
-					$keywordsSpintax = Spintax::parse($options['custom_keywords']);
-					$keywordsMax = Spintax::count($keywordsSpintax);
+					$customKeywordsText = sourceflood_spintax_the_field($options['custom_keywords'], $project, $spintaxIteration, $geo);
 
-					$keywordsIteration = sourceflood_get_spintax_subiteration($keywordsMax, $project, $spintaxIteration);
-
-					$keywordsText = Spintax::make($options['custom_keywords'], $keywordsIteration, $keywordsSpintax);
-					if ($geo) $keywordsText = Spintax::geo($keywordsText, $geoData);
-
-					add_post_meta($post_id, 'sourceflood_custom_keywords', $keywordsText);
+					add_post_meta($post_id, 'sourceflood_custom_keywords', $customKeywordsText);
 				}
 
+				// Schema Section
+				if (isset($options['schema_business'])) {
+					$schemaBusinessText = sourceflood_spintax_the_field($options['schema_business'], $project, $spintaxIteration, $geo);
+
+					add_post_meta($post_id, 'sourceflood_schema_business', $schemaBusinessText);
+				}
+				if (isset($options['schema_description'])) {
+					$schemaDescriptionText = sourceflood_spintax_the_field($options['schema_description'], $project, $spintaxIteration, $geo);
+
+					add_post_meta($post_id, 'sourceflood_schema_description', $schemaDescriptionText);
+				}
+				if (isset($options['schema_email'])) {
+					$schemaEmailText = sourceflood_spintax_the_field($options['schema_email'], $project, $spintaxIteration, $geo);
+
+					add_post_meta($post_id, 'sourceflood_schema_email', $schemaEmailText);
+				}
+				if (isset($options['schema_telephone'])) {
+					add_post_meta($post_id, 'sourceflood_schema_telephone', $options['schema_telephone']);
+				}
+				if (isset($options['schema_social'])) {
+					$schemaSocialText = sourceflood_spintax_the_field($options['schema_social'], $project, $spintaxIteration, $geo);
+
+					add_post_meta($post_id, 'sourceflood_schema_social', $schemaSocialText);
+				}
+				if (isset($options['schema_rating'])) {
+					add_post_meta($post_id, 'sourceflood_schema_rating', $options['schema_rating']);
+				}
+				if (isset($options['schema_address'])) {
+					$schemaAddressText = sourceflood_spintax_the_field($options['schema_address'], $project, $spintaxIteration, $geo);
+
+					add_post_meta($post_id, 'sourceflood_schema_address', $schemaAddressText);
+				}
+				
 				$project->iteration++;
 			}
 

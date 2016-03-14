@@ -3,15 +3,15 @@ use SourceFlood\View;
 ?>
 
 <?php View::startSection('breadcrumbs') ?>
-	<a href="<?= admin_url('admin.php?page=sourceflood') ?>">SourceFlood</a>
+	<a href="<?= admin_url('admin.php?page=workhorse') ?>">Work Horse</a>
 	&raquo;
-	<a href="<?= admin_url('admin.php?page=sourceflood_shortcodes') ?>">Shortcodes List</a>
+	<a href="<?= admin_url('admin.php?page=workhorse_shortcodes') ?>">Shortcodes List</a>
 	&raquo;
 	<span>Create Shortcode</span>
 <?php View::endSection('breadcrumbs') ?>
 
 <?php View::startSection('content') ?>
-	<form action="<?= admin_url('admin.php?page=sourceflood_shortcodes&action=do_create&noheader=true') ?>" method="post">
+	<form action="<?= admin_url('admin.php?page=workhorse_shortcodes&action=do_create&noheader=true') ?>" method="post">
 		<?php View::render('shortcodes.form') ?>
 
 		<div class="Posting__buttons">

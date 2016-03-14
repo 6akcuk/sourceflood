@@ -60,7 +60,7 @@ function sourceflood_projects() {
 		$model->delete($id);
 
 		FlashMessage::success('Project and all posts/pages deleted.');
-		wp_redirect('/wp-admin/admin.php?page=sourceflood_projects');
+		wp_redirect('/wp-admin/admin.php?page=workhorse_projects');
 		exit;
 		
 	endif;

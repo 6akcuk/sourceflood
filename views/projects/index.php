@@ -3,7 +3,7 @@ use SourceFlood\View;
 ?>
 
 <?php View::startSection('breadcrumbs') ?>
-	<a href="<?= admin_url('admin.php?page=sourceflood') ?>">SourceFlood</a>
+	<a href="<?= admin_url('admin.php?page=workhorse') ?>">Work Horse</a>
 	&raquo;
 	<span>Projects List</span>
 <?php View::endSection('breadcrumbs') ?>
@@ -11,7 +11,7 @@ use SourceFlood\View;
 <?php View::startSection('content') ?>
 	<h2>
 		Projects List
-		<a href="<?= admin_url('admin.php?page=sourceflood') ?>" class="add-new-h2">Add New</a>
+		<a href="<?= admin_url('admin.php?page=workhorse') ?>" class="add-new-h2">Add New</a>
 	</h2>
 
 	<form method="get">
@@ -37,7 +37,7 @@ use SourceFlood\View;
 					</strong>
 					<div class="row-actions">
 						<span class="trash">
-							<a class="submitdelete" href="<?= admin_url('admin.php?page=sourceflood_projects&action=delete&id='. $project->id .'&noheader=true') ?>" onclick="return confirm('This action will delete project and all generated posts/pages')">Delete project and all posts/pages</a>
+							<a class="submitdelete" href="<?= admin_url('admin.php?page=workhorse_projects&action=delete&id='. $project->id .'&noheader=true') ?>" onclick="return confirm('This action will delete project and all generated posts/pages')">Delete project and all posts/pages</a>
 						</span>
 					</div>
 				</td>
@@ -58,7 +58,7 @@ use SourceFlood\View;
 					?>
 				</td>
 				<td>
-					<strong><?= ($project->iteration == $project->max_iterations) ? 'Finished' : 'Processing' ?></strong>
+					<strong><?= ($project->iteration >= $project->max_iterations) ? 'Finished' : 'Processing' ?></strong>
 				</td>
 			</tr>
 			<?php endforeach; ?>

@@ -1,6 +1,8 @@
 <?php
 
-if (isset($_GET['api']) && $_GET['api'] == 'sourceflood') {
+use SourceFlood\Validator;
+
+if (isset($_GET['api']) && $_GET['api'] == 'workhorse') {
     $act = $_GET['action'];
     $results = array();
 
@@ -98,6 +100,24 @@ if (isset($_GET['api']) && $_GET['api'] == 'sourceflood') {
 	    		}
 	    	}
     	}
+    }
+    elseif ($act == 'shortcode') {
+    	if (!Validator::validate($_POST, array(
+			'shortcode' => 'required',
+			'images' => 'required'
+		))) {
+			header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
+    		exit;
+		}
+
+    	$shortcode = $_POST['shortcode'];
+    	$images = json_encode($_POST['images']);
+
+    	$sql = $wpdb->prepare("INSERT INTO {$wpdb->prefix}sourceflood_shortcodes (shortcode, type, content) VALUES (%s, %s, %s)", array($shortcode, 'static', $images));
+
+    	$wpdb->query($sql);
+
+    	$results['success'] = 1;
     }
 
     header('Content-Type: application/json');
