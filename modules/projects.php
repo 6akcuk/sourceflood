@@ -1,12 +1,18 @@
 <?php
 
 use SourceFlood\View;
+use SourceFlood\License;
 use SourceFlood\Validator;
 use SourceFlood\Models\Task;
 use SourceFlood\FlashMessage;
 
 function sourceflood_projects() {
 	global $wpdb;
+
+	if (!License::checkThatLicenseIsValid()) {
+		View::render('common.license');
+		return;
+	}
 
 	$action = isset($_GET['action']) ? $_GET['action'] : 'index';
 	$limit = isset($_GET['limit']) ? $_GET['limit'] : 20;
@@ -15,9 +21,11 @@ function sourceflood_projects() {
 
 	if ($action == 'index'):
 		// Filters
-		$orderBy = isset($_GET['orderBy']) ? $_GET['orderBy'] : 'name';
-		$order = isset($_GET['order']) ? $_GET['order'] : 'ASC';
+		$orderBy = isset($_GET['orderBy']) ? $_GET['orderBy'] : 'created_at';
+		$order = isset($_GET['order']) ? $_GET['order'] : 'DESC';
 
+		$highlight = isset($_GET['highlight']) ? $_GET['highlight'] : null;
+		
 		$where = array();
 		$params = array();
 
@@ -46,7 +54,7 @@ function sourceflood_projects() {
 		$total_row = $wpdb->get_row($sqlTotal);
 		$total = $total_row->total;
 		
-		View::render('projects.index', compact('projects', 'total', 'order', 'orderBy'));
+		View::render('projects.index', compact('projects', 'total', 'order', 'orderBy', 'highlight'));
 
 	elseif ($action == 'delete'):
 

@@ -1,6 +1,7 @@
 <?php
 
 use SourceFlood\View;
+use SourceFlood\License;
 use SourceFlood\Validator;
 use SourceFlood\FlashMessage;
 use SourceFlood\Models\Shortcode;
@@ -9,6 +10,10 @@ add_action('init', 'sourceflood_init_shortcodes');
 
 function sourceflood_init_shortcodes() {
 	$model = new Shortcode();
+
+	if (!License::checkThatLicenseIsValid()) {
+		return;
+	}
 
 	$shortcodes = $model->all();
 
@@ -19,10 +24,6 @@ function sourceflood_init_shortcodes() {
 
 function sourceflood_handle_shortcode($attributes, $content = null, $called = null) {
 	$model = new Shortcode();
-
-	/*var_dump($called);
-	var_dump($attributes);
-	exit;*/
 
 	$shortcode = $model->getByShortcode($called);
 	if (isJSON($shortcode->content)) {
@@ -35,6 +36,11 @@ function sourceflood_handle_shortcode($attributes, $content = null, $called = nu
 
 function sourceflood_shortcodes() {
 	global $wpdb;
+
+	if (!License::checkThatLicenseIsValid()) {
+		View::render('common.license');
+		return;
+	}
 
 	$action = isset($_GET['action']) ? $_GET['action'] : 'index';
 	$limit = isset($_GET['limit']) ? $_GET['limit'] : 20;

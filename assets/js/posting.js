@@ -35,14 +35,21 @@
 			}
 		});
 
+		// Image EXIF
+		$('#exif-enabler').change(function() {
+			if ($(this).is(':checked')) {
+				$('#exif-wrap').show();
+			} else {
+				$('#exif-wrap').hide();
+			}
+		});
+
 		// Local SEO
 		$('#local-seo-enabler').change(function() {
 			if ($(this).is(':checked')) {
 				$('#local-seo-wrap').show();
-				$('#exif-enabler').attr('disabled', false);
 			} else {
 				$('#local-seo-wrap').hide();
-				$('#exif-enabler').attr('disabled', true);
 			}
 		});
 
@@ -124,6 +131,41 @@
 				plugins: ['checkbox', 'changed']
 			});
 
+		// Word AI
+		if ($('#word-ai-key').length && $('#word-ai-email').length) {
+			$('#wp-content-media-buttons').append('\
+				<button type="button" id="word-ai" class="button" data-editor="content">\
+					Word AI\
+				</button>\
+			');
+			$('#word-ai').click(function(e) {
+				var text = $.trim(tinymce.get('content').getContent());
+				if (!text) return false;
+
+				var email = $('#word-ai-email').val();
+				var hash = $('#word-ai-key').val();
+
+				$(this).text('Processing..').attr('disabled', true);
+				$.post('/index.php?api=workhorse&action=word-ai', {
+					text: text,
+					quality: 'Readable',
+					email: email,
+					hash: hash,
+					output: 'json'
+				}, 'json')
+				.done(function(response) {
+					if (response.status == 'Failure') {
+						alert(response.error);
+					} else {
+						tinymce.get('content').setContent(response.text);
+					}
+				})
+				.always(function() {
+					$(this).text('Word AI').attr('disabled', false);
+				}.bind(this));
+			});
+		}
+
 		// Form submission
 		$form.submit(function(e) {
 			// Check local seo tags
@@ -192,6 +234,21 @@
 				});
 
 				$form.prepend('<input type="hidden" id="local-geo-locations" name="local_geo_locations" value=\''+ JSON.stringify(uniqueLocations) +'\'>');
+			}
+
+			$form.find('#exif-locations').remove();
+
+			if ($form.find('#exif-enabler').is(':checked')) {
+				var exifLocations = [];
+
+				_.each(ImageEXIF.selected, function(location) {
+					exifLocations.push({
+						address: location.address,
+						location: location.location
+					});
+				});
+
+				$form.prepend('<input type="hidden" id="exif-locations" name="exif_locations" value=\''+ JSON.stringify(exifLocations) + '\'>');
 			}
 		});
 

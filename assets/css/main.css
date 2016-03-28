@@ -129,7 +129,7 @@
     font-size: 14px;
     border: 1px solid #ddd;
     border-radius: 10px;
-    margin: 20px 10px 10px 0;
+    margin: 20px 0 10px 0;
 }
 .Breadcrumbs > span {
 	font-weight: bold;
@@ -154,6 +154,44 @@
 }
 
 
+.Dialog__overlay {
+  display: none;
+  background: rgba(0, 0, 0, 0.7);
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    z-index: 100000;
+}
+.Dialog {
+  display: none;
+  position: fixed;
+    top: 40px;
+    left: 50%;
+    min-width: 783px;
+    min-height: 400px;
+    background: #fff;
+    z-index: 100001;
+    margin-left: -391px;
+}
+.Dialog__title-wrap {
+    border-bottom: 1px solid #ddd;
+    padding: 15px;
+}
+.Dialog__title {
+    font-weight: bold;
+    font-size: 14px;
+}
+.Dialog__title-wrap .tb-close-icon {
+    top: 9px;
+    right: 5px;
+    cursor: pointer;
+}
+.Dialog__body {
+  width: 783px;
+}
+
+
 .full-width {
 	width: 100%;
 }
@@ -170,6 +208,19 @@
 	content: "";
 	clear: both;
 	height: 0;
+}
+
+.LicenseNotifier {
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ddd;
+}
+.LicenseWarning {
+    text-align: center;
+    padding: 100px 0;
+    font-size: 24px;
+    background: #fff;
+    border: 1px solid #ddd;
 }
 
 /* */
@@ -338,8 +389,8 @@
 }
 
 .Pixabay__shortcode-wrap {
-	display: none;
-	position: absolute;
+  	display: none;
+  	position: absolute;
     bottom: 40px;
     left: -58px;
     background: #fff;
@@ -348,41 +399,31 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
-
-.ImageScraper__overlay {
-	display: none;
-	background: rgba(0, 0, 0, 0.7);
-    width: 100%;
-    height: 100%;
-    position: fixed;
-    top: 0;
-    z-index: 100000;
+#exif-addresses {
+    padding: 10px 0 0;
 }
-.ImageScraper {
-	display: none;
-	position: fixed;
-    top: 40px;
-    left: 50%;
-    min-width: 783px;
-    min-height: 400px;
-    background: #fff;
-    z-index: 100001;
-    margin-left: -391px;
-}
-.ImageScraper__title-wrap {
-    border-bottom: 1px solid #ddd;
-    padding: 15px;
-}
-.ImageScraper__title {
+.ExifAddress {
+    display: inline-block;
+    padding: 5px 25px 5px 10px;
+    background: #0085BA;
+    color: #fff;
+    border-radius: 5px;
     font-weight: bold;
-    font-size: 14px;
-}
-.ImageScraper__title-wrap .tb-close-icon {
-    top: 9px;
-    right: 5px;
+    font-size: 12px;
     cursor: pointer;
+    position: relative;
+    margin-right: 5px;
+    margin-top: 5px;
 }
-.ImageScraper__body {
-	width: 783px;
+.ExifAddress__delete {
+    color: #8CBFD4 !important;
+    top: 4px;
+}
+.ExifAddress__delete:hover {
+    color: #fff !important;
 }
 
+/* Projects */
+.WHProject--highlight {
+  background: #FBFFB6 !important;
+}

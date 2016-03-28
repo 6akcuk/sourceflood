@@ -1,29 +1,32 @@
 <?php
 
 use Carbon\Carbon;
+use SourceFlood\License;
 use SourceFlood\Spintax;
 use SourceFlood\Models\Task;
 
 // Add every minute schedule
-function sourceflood_add_every_minute($schedules) {
+function workhorse_add_every_minute($schedules) {
      $schedules['every_minute'] = array(
         'interval'  => 60,
         'display'   => __( 'Every Minute', 'textdomain' )
     );
-     
+    
     return $schedules;
 }
-add_filter('cron_schedules', 'sourceflood_add_every_minute');
+add_filter('cron_schedules', 'workhorse_add_every_minute');
 
 
 // Schedules
-wp_schedule_event(time(), 'every_minute', 'sourceflood_parse_tasks');
-
 function sourceflood_parse_tasks() {
 	global $wpdb;
 
-	$model = new Task();
+	if (!License::checkThatLicenseIsValid()) {
+		return;
+	}
 
+	$model = new Task();
+	
 	$projects = $model->getActive();
 	foreach ($projects as $project) {
 		$options = json_decode($project->options, true);
@@ -52,11 +55,11 @@ function sourceflood_parse_tasks() {
 
 		$last_update = Carbon::parse($project->updated_at);
 		$now = Carbon::now();
-
+		
 		// Time to post
 		if ($now->diffInMinutes($last_update) >= $interval) {
 			$data = json_decode($project->content, true);
-
+			
 			$title = $data['title'];
 			$content = $data['content'];
 
@@ -68,8 +71,17 @@ function sourceflood_parse_tasks() {
 
 			$posts = min($posts, $project->max_iterations);
 
+			if (isset($options['exif_locations'])) {
+				$options['exif_locations'] = str_replace('\"', '"', $options['exif_locations']);
+
+				$exifLocations = json_decode($options['exif_locations']);
+			}
+
 			for ($i = 1; $i <= $posts; $i++) {
-				if ($project->iteration == $project->max_iterations + 1) break;
+				if ($project->iteration == $project->max_iterations + 1) {
+					$project->iteration = $project->max_iterations;
+					break;
+				}
 
 				if ($geo) {
 					$geoIteration = ceil($project->iteration / $project->spintax_iterations);
@@ -88,7 +100,63 @@ function sourceflood_parse_tasks() {
 
 				$contentText = Spintax::make($content, $contentIteration, $contentSpintax);
 				if ($geo) $contentText = Spintax::geo($contentText, $geoData);
-				
+
+				// Images EXIF
+				if (isset($options['exif_locations'])) {
+					$locationIteration = sourceflood_get_current_subiteration($project->iteration, sizeof($exifLocations)) - 1;
+					$address = $exifLocations[$locationIteration]->address;
+
+					if (!isset($options['exif_cache'])) $options['exif_cache'] = [];
+					if (!isset($options['exif_cache'][$address])) $options['exif_cache'][$address] = [];
+
+					preg_match_all('/src=\\\"(.*)\\\" alt=\\\"(.*)\\\" width/ui', $contentText, $exif);
+
+					foreach ($exif[1] as $idx => $image) {
+						if (!isset($options['exif_cache'][$address][$image])) {
+							$image = str_replace(':8000', '', $image); // Fix only for local dev
+							$filename = sha1($address .'-'. $image .'-exif') .'.jpg';
+
+							$exploded = explode('.', $image);
+						    $ext = $exploded[count($exploded) - 1]; 
+
+						    if (preg_match('/jpg|jpeg/i', $ext))
+						        $imageSrc = $image;
+						    else if (preg_match('/png/i', $ext))
+						        $imageSrc = imagecreatefrompng($image);
+						    else if (preg_match('/gif/i', $ext))
+						        $imageSrc = imagecreatefromgif($image);
+						    else if (preg_match('/bmp/i', $ext))
+						        $imageSrc = imagecreatefrombmp($image);
+
+						    $imagedir = 'uploads/'. date('Y') .'/'. date('m') .'/'. $filename;
+							workhorse_check_dir($imagedir);
+
+						    addGpsInfo(
+						    	$imageSrc, 
+						    	WP_CONTENT_DIR .'/'. $imagedir,
+						    	$exif[2][$idx],
+						    	'Work Horse Comment',
+						    	'Work Horse',
+						    	$exifLocations[$locationIteration]->location->lng,
+						    	$exifLocations[$locationIteration]->location->lat,
+						    	0,
+						    	date('Y-m-d H:i:s')
+					    	);
+
+					    	$savedir = "/wp-content/$imagedir";
+
+						    // local dev fix
+						    $image = str_replace('.app', '.app:8000', $image);
+
+					    	$options['exif_cache'][$address][$image] = $savedir;
+						} else {
+							$savedir = $options['exif_cache'][$address][$image];
+						}
+
+				    	$contentText = str_replace($image, $savedir, $contentText);
+					}
+				}
+
 				$post_id = wp_insert_post([
 		            'post_title' => $titleText,
 		            'post_name' => sanitize_title($titleText),
@@ -164,8 +232,12 @@ function sourceflood_parse_tasks() {
 				$update['finished_at'] = date('Y-m-d H:i:s');
 			}
 
+			if (isset($options['exif_cache'])) {
+				$update['options'] = json_encode($options);
+			}
+
 			$model->update($update, $project->id);
 		}
 	}
 }
-add_action('sourceflood_parse_tasks', 'sourceflood_parse_tasks');
+add_action('sourceflood_parse_tasks_hook', 'sourceflood_parse_tasks');

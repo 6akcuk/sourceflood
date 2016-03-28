@@ -5,6 +5,14 @@ wp_enqueue_script('post');
 ?>
 
 <input type="hidden" name="post_type" value="<?= $post_type ?>">
+<?php
+	$word_ai = get_option('workhorse_word_ai_key');
+
+	if ($word_ai && $word_ai_email = get_option('workhorse_word_ai_email')):
+?>
+<input type="hidden" id="word-ai-email" name="word_ai_email" value="<?= $word_ai_email ?>">
+<input type="hidden" id="word-ai-key" name="word_ai_key" value="<?= $word_ai ?>">
+<?php endif; ?>
 
 <div id="poststuff" class="PostForm">
 	<div id="post-body" class="metabox-holder columns-2">
@@ -40,12 +48,32 @@ wp_enqueue_script('post');
 			</div>
 
 			<div class="PostForm__buttons">
-				<button class="button button-primary">Submit</button>
+				<button class="button button-primary">Create Project</button>
 			</div>
 		</div>
 
 		<div id="postbox-container-1" class="postbox-container">
 			<div id="side-sortables" class="meta-box-sortables ui-sortable">
+				<!-- Options -->
+				<div class="postbox">
+					<button type="button" class="handlediv button-link" aria-expanded="true">
+						<span class="toggle-indicator" aria-hidden="true"></span>
+					</button>
+					<h2 class="hndle ui-sortable-handle"><span>Work Horse Options</span></h2>
+					<div class="inside">
+						<p>
+							<label for="max-posts">
+								<strong>Max Posts:</strong> <br>
+								<em>
+									Maximum number of posts to generate. It doesn't work if you select Local SEO. <br>
+									Input `0` if you want to generate all available posts from spintax.
+								</em>
+							</label>
+							<input type="text" id="max-posts" name="max_posts" value="1">
+						</p>
+					</div>
+				</div>
+
 				<!-- DripFeed Property -->
 				<div class="postbox">
 					<button type="button" class="handlediv button-link" aria-expanded="true">
@@ -87,23 +115,39 @@ wp_enqueue_script('post');
 					<button type="button" class="handlediv button-link" aria-expanded="true">
 						<span class="toggle-indicator" aria-hidden="true"></span>
 					</button>
-					<h2 class="hndle ui-sortable-handle"><span>Work Horse Images Scraper</span></h2>
+					<h2 class="hndle ui-sortable-handle"><span>Work Horse Images</span></h2>
 					<div class="inside">
+						<?php
+							$google_api_key = get_option('workhorse_google_api_key');
+							$old_exif_enabler = Validator::old('exif_enabler', 0);
+
+							if (!empty($google_api_key)):
+						?>
+						<p>
+							<label for="exif-enabler" class="selectit">
+								<input id="exif-enabler" name="exif_enabler" type="checkbox" value="1" <?= $old_exif_enabler == 1 ? 'checked' : ''; ?>>
+								Enable Image EXIF
+							</label>
+						</p>
+						<?php else: ?>
+							<div class="PixabayKeyWarning">
+								Please, enter Google Maps API Key in <a href="/wp-admin/admin.php?page=workhorse_settings">Plugin Settings</a>.
+							</div>
+						<?php endif; ?>
+
+						<p id="exif-wrap" style="display: <?= $old_exif_enabler == 1 ? 'block' : 'none' ?>">
+							<a href="/index.php?api=workhorse&action=exif" onclick="return ImageEXIF.start(this)">Set Locations For Images</a>
+						</p>
+
 						<p>
 							<?php
-								$pixabay_key = get_option('sourceflood_pixabay_key');
+								$pixabay_key = get_option('workhorse_pixabay_key');
 								$old_local_seo_enabler = Validator::old('local_seo_enabler', 0);
-
+								
 								if (!empty($pixabay_key)):
 							?>
 							<input type="hidden" id="pixabay-api-key" value="<?= $pixabay_key ?>">
 							<a href="/wp-content/plugins/workhorse/imagescraper.php" title="Image Scraper" onclick="return ImageScraper.start(this)">Launch Images Scraper</a>
-								<p>
-									<label for="exif-enabler" class="selectit">
-										<input id="exif-enabler" name="exif_enabler" type="checkbox" value="1" <?= Validator::old('exif_enabler', 0) == 1 ? 'checked' : ''; ?> <?= $old_local_seo_enabler == 0 ? 'disabled' : '' ?>>
-										Enable Image EXIF
-									</label>
-								</p>
 							<?php else: ?>
 								<div class="PixabayKeyWarning">
 									Please, enter Pixabay API Key in <a href="/wp-admin/admin.php?page=workhorse_settings">Plugin Settings</a>.

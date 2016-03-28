@@ -1,6 +1,7 @@
 <?php
 
 use SourceFlood\View;
+use SourceFlood\License;
 use SourceFlood\Spintax;
 use SourceFlood\Validator;
 use SourceFlood\Models\Task;
@@ -10,6 +11,11 @@ function sourceflood_posting()
 {
 	$action = isset($_GET['action']) ? $_GET['action'] : 'index';
 	$model = new Task();
+
+	if (!License::checkThatLicenseIsValid()) {
+		View::render('common.license');
+		return;
+	}
 
 	// Main posting page
 	if ($action == 'index'):
@@ -26,8 +32,13 @@ function sourceflood_posting()
 			'content' => 'required',
 			'post_type' => 'required|post_type',
 
+			'max_posts' => 'numeric',
+
 			// Dripfeed
-			'dripfeed_x' => 'required_if:dripfeed_enabler|numeric'
+			'dripfeed_x' => 'required_if:dripfeed_enabler|numeric',
+
+			// Image EXIF
+			'exif_locations' => 'required_if:exif_enabler'
 		))) {
 			wp_redirect('/wp-admin/admin.php?page=workhorse&action=create_post');
 			exit;
@@ -100,7 +111,15 @@ function sourceflood_posting()
 
 		// Image EXIF
 		if (isset($_POST['exif_enabler'])) {
-			$options_data['exif_enabled'] = true;
+			$options_data['exif_locations'] = $_POST['exif_locations'];
+		}
+
+		// Math maximum number of posts
+		$max = 1;
+		if (isset($_POST['local_seo_enabler'])) {
+			$max = $geo_iterations;
+		} else {
+			$max = ($_POST['max_posts'] <= 0) ? max($iterations) : intval($_POST['max_posts']);
 		}
 
 		$data = array(
@@ -109,13 +128,14 @@ function sourceflood_posting()
 			'options' => json_encode($options_data),
 			'iteration' => 1,
 			'spintax_iterations' => max($iterations),
-			'max_iterations' => max($iterations) * $geo_iterations
+			//'max_iterations' => max($iterations) * $geo_iterations
+			'max_iterations' => $max
 		);
 		
 		$project_id = $model->create($data);
 
 		FlashMessage::success('Project successfully created. It will generate '. $data['max_iterations'] .' posts/pages.');
-		wp_redirect('/wp-admin/admin.php?page=workhorse');
+		wp_redirect('/wp-admin/admin.php?page=workhorse_projects&highlight='. $project_id);
 		exit;
 
 	endif;

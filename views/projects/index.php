@@ -18,7 +18,7 @@ use SourceFlood\View;
 		<table class="wp-list-table widefat fixed striped">
 		<thead>
 		<tr>
-			<td class="check-column"></td>
+			<td style="width: 80px"></td>
 			<th>Name</th>
 			<th>Current Post</th>
 			<th>Max Posts</th>
@@ -29,8 +29,12 @@ use SourceFlood\View;
 		</thead>
 		<tbody>
 			<?php foreach ($projects as $project): ?>
-			<tr>
-				<td></td>
+			<tr<?= $highlight == $project->id ? ' class="WHProject--highlight"' : '' ?>>
+				<td>
+					<?php if ($project->iteration < $project->max_iterations): ?>
+					<a href="/wp-admin/admin.php?page=workhorse_builder&id=<?= $project->id ?>" class="button button-primary" target="_blank">Build posts</a>
+					<?php endif; ?>
+				</td>
 				<td class="column-title has-row-actions">
 					<strong>
 						<a class="row-title"><?= $project->name ?></a>

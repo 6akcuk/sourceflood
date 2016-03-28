@@ -1,7 +1,12 @@
 <?php
 
+use SourceFlood\License;
+
 // Libraries
 include_once 'autoloader.php';
+
+// Load license status
+License::checkThatLicenseIsValid();
 
 // Other parts
 include_once 'includes/installer.php';

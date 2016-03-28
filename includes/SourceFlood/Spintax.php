@@ -25,13 +25,17 @@ class Spintax
 
 			foreach ($strokes as $value) {
 				if (strstr($value, '$$')) {
-					preg_match("/\\$\\$(\d+)/i", $value, $varKeys);
+					preg_match_all("/\\$\\$(\d+)/i", $value, $varKeys);
 					$string = $value;
-
-					foreach ($varKeys as $vark) {
+					
+					// Unique keys
+					//$spintaxes[0] = array_unique($spintaxes[0]);
+					//var_dump($spintaxes[0]);
+					
+					foreach ($varKeys[1] as $vark) {
 						$string = str_replace("$$". $vark, $spintaxes[0][$vark], $string);
 					}
-
+					
 					$values[] = self::parse($string);
 				} else {
 					$values[] = $value;

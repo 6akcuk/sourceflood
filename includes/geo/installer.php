@@ -60,6 +60,8 @@ dbDelta($sql);
 
 // Install Geo Data
 if (!get_option('sourceflood_db_version')) {
+  @set_time_limit(0);
+
 	include_once 'us.states.php';
 	include_once 'us.cities.php';
   

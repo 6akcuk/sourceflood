@@ -5,49 +5,14 @@ var ImageScraper = {
 	moreBusy: false,
 
 	init: function() {
-		jQuery('<div class="ImageScraper__overlay" onclick="ImageScraper.close()"></div>\
-			<div class="ImageScraper" onclick="ImageScraper.hideOverlays()">\
-				<div class="ImageScraper__title-wrap">\
-					<div class="ImageScraper__title"></div>\
-					<a class="ImageScraper__close" onclick="ImageScraper.close()"><div class="tb-close-icon"></div></a>\
-				</div>\
-				<div class="ImageScraper__body"></div>\
-			</div>').appendTo('body');
-	},
-
-	open: function() {
-		jQuery('div.ImageScraper__overlay').show();
-		jQuery('div.ImageScraper').show();
-
-		jQuery('body').css({
-			overflow: 'hidden'
-		});
-	},
-
-	close: function() {
-		jQuery('div.ImageScraper__overlay').hide();
-		jQuery('div.ImageScraper').hide();
-
-		jQuery('body').css({
-			overflow: 'auto'
-		});
-
-		ImageScraper.hideOverlays();
-	},
-
-	hideOverlays: function() {
-		jQuery('div.Pixabay__shortcode-wrap').hide();
-	},
-
-	title: function(title) {
-		jQuery('div.ImageScraper__title').text(title);
+		Dialog.init('ImageScraper', ['div.Pixabay__shortcode-wrap']);
 	},
 
 	start: function(el) {
-		ImageScraper.title('Image Scraper');
+		Dialog.title('ImageScraper', 'Image Scraper');
 
 		if (!ImageScraper.formLoaded) {
-			jQuery('div.ImageScraper__body').load(jQuery(el).attr('href'), function() {
+			Dialog.body('ImageScraper').load(jQuery(el).attr('href'), function() {
 				ImageScraper.formLoaded = true;
 
 				jQuery('#pixabay-search-images').scroll(function()
@@ -63,7 +28,7 @@ var ImageScraper = {
 			});
 		}
 
-		ImageScraper.open();
+		Dialog.open('ImageScraper');
 
 		return false;
 	},
@@ -108,7 +73,7 @@ var ImageScraper = {
 	},
 
 	status: function() {
-		jQuery('div.Pixabay__status').html('<strong>' + ImageScraper.selected.length + '</strong> selected.' + (ImageScraper.selected.length > 0 ? ' <a href="#" onclick="ImageScraper.deselect()">Deselect all</a>' : ''));
+		Dialog.body('ImageScraper').find('div.Pixabay__status').html('<strong>' + ImageScraper.selected.length + '</strong> selected.' + (ImageScraper.selected.length > 0 ? ' <a href="#" onclick="ImageScraper.deselect()">Deselect all</a>' : ''));
 	},
 
 	handleSelect: function(el, image) {

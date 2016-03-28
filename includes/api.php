@@ -1,5 +1,6 @@
 <?php
 
+use SourceFlood\View;
 use SourceFlood\Validator;
 
 if (isset($_GET['api']) && $_GET['api'] == 'workhorse') {
@@ -118,6 +119,25 @@ if (isset($_GET['api']) && $_GET['api'] == 'workhorse') {
     	$wpdb->query($sql);
 
     	$results['success'] = 1;
+    }
+    elseif ($act == 'exif') {
+    	View::render('exif.index');
+
+    	exit;
+    }
+    elseif ($act == 'word-ai') {
+    	$text = urlencode($_POST['text']);
+    	$quality = $_POST['quality'];
+    	$email = urlencode($_POST['email']);
+    	$hash = $_POST['hash'];
+    	
+		$ch = curl_init('http://wordai.com/users/turing-api.php');
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt ($ch, CURLOPT_POST, 1);
+		curl_setopt ($ch, CURLOPT_POSTFIELDS, "s=$text&quality=$quality&email=$email&hash=$hash&output=json");
+
+		$results = json_decode(curl_exec($ch), true);
+		curl_close ($ch);
     }
 
     header('Content-Type: application/json');
