@@ -423,6 +423,18 @@
     color: #fff !important;
 }
 
+#edit-slug-box input {
+    font-size: 13px;
+    font-weight: 400;
+    height: 22px;
+    margin: 0;
+    width: 16em;
+}
+
+#tagsinput {
+    width: 180px;
+}
+
 /* Projects */
 .WHProject--highlight {
   background: #FBFFB6 !important;

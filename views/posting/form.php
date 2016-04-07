@@ -25,10 +25,22 @@ wp_enqueue_script('post');
 			</div>
 
 			<div class="PostForm__title-wrap<?php if (Validator::hasError('title')) echo ' PostForm--error' ?>">
-				<input type="text" name="title" class="PostForm__title" placeholder="Enter title here" value="<?= Validator::old('title') ?>">
+				<input type="text" id="title" name="title" class="PostForm__title" placeholder="Enter title here" value="<?= Validator::old('title') ?>">
 				<?php if (Validator::hasError('title')): ?>
 				<span class="PostForm__error"><?= Validator::get('title') ?></span>
 				<?php endif; ?>
+
+				<div id="edit-slug-box">
+					<?php
+						$old_permalink = Validator::old('permalink');
+					?>
+					<input type="hidden" name="permalink" value="<?= $old_permalink ?>">
+					<strong>Permalink:</strong>
+					<span><?= workhorse_permalink($old_permalink) ?></span>
+					<a id="edit-permalink" class="button button-small" aria-label="Edit permalink">Edit</a>
+					<a id="save-permalink" class="button button-small" style="display: none">OK</a>
+					<a id="cancel-permalink" class="cancel button-link" style="display: none">Cancel</a>
+				</div>
 			</div>
 
 			<div class="PostForm__body-wrap<?php if (Validator::hasError('content')) echo ' PostForm--error' ?>">
@@ -71,6 +83,16 @@ wp_enqueue_script('post');
 							</label>
 							<input type="text" id="max-posts" name="max_posts" value="1">
 						</p>
+
+						<p>
+							<strong>Distribute among users randomly:</strong> <br>
+							<em>
+								Distribute posts among <a href="<?= admin_url('admin.php?page=workhorse_users') ?>">Work Horse users</a> randomly.
+							</em>
+							<br>
+							<input type="checkbox" id="distribute" name="distribute" value="1" <?= Validator::old('distribute') == 1 ? 'checked' : ''; ?>>
+							<label for="distribute">Distribute</label>
+						</p>
 					</div>
 				</div>
 
@@ -107,6 +129,30 @@ wp_enqueue_script('post');
 								<?php endif; ?>
 							</p>
 						</div>
+					</div>
+				</div>
+
+				<!-- Tags -->
+				<div class="postbox">
+					<button type="button" class="handlediv button-link" aria-expanded="true">
+						<span class="toggle-indicator" aria-hidden="true"></span>
+					</button>
+					<h2 class="hndle ui-sortable-handle"><span>Work Horse Tags</span></h2>
+					<div class="inside">
+						<input type="hidden" name="tags">
+						<p>
+							<input type="text" id="tagsinput" size="16" autocomplete="off" value="<?= Validator::old('tags') ?>">
+							<a id="add-tags" class="button">Add</a>
+						</p>
+						<p class="howto">Separate tags with commas</p>
+						<div id="tags" class="tagchecklist"></div>
+
+						<label for="noindex_tags" class="selectit">
+							<input id="noindex_tags" name="noindex_tags" type="checkbox" value="1" <?= Validator::old('noindex_tags') == 1 ? 'checked' : ''; ?>>
+							Noindex tags
+						</label>
+						<p class="howto">Helps fight duplicate content on tag pages; not recommended</p>
+
 					</div>
 				</div>
 
@@ -236,6 +282,14 @@ wp_enqueue_script('post');
 							<div id="local-seo-wrap" style="display: <?= $old_local_seo_enabler == 1 ? 'block' : 'none'; ?>;">
 							<table class="form-table">
 								<tbody>
+									<tr>
+										<th>
+											<label for="local-randomize">Randomize Results:</label>
+										</th>
+										<td>
+											<input id="local-randomize" name="local_randomize" type="checkbox" value="1" <?= Validator::old('local_randomize') == 1 ? 'checked' : '' ?>>
+										</td>
+									</tr>
 									<tr>
 										<th>
 											<label for="local-country">Country:</label>

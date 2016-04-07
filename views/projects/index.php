@@ -13,7 +13,7 @@ use SourceFlood\View;
 		Projects List
 		<a href="<?= admin_url('admin.php?page=workhorse') ?>" class="add-new-h2">Add New</a>
 	</h2>
-
+	
 	<form method="get">
 		<table class="wp-list-table widefat fixed striped">
 		<thead>
@@ -42,6 +42,10 @@ use SourceFlood\View;
 					<div class="row-actions">
 						<span class="trash">
 							<a class="submitdelete" href="<?= admin_url('admin.php?page=workhorse_projects&action=delete&id='. $project->id .'&noheader=true') ?>" onclick="return confirm('This action will delete project and all generated posts/pages')">Delete project and all posts/pages</a>
+						</span>
+						|
+						<span class="trash">
+							<a class="submitdelete" href="<?= admin_url('admin.php?page=workhorse_projects&action=delete_posts&id='. $project->id .'&noheader=true') ?>" onclick="return confirm('This action will delete all generated posts/pages')">Delete only posts/pages</a>
 						</span>
 					</div>
 				</td>

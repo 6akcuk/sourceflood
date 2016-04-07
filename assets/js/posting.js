@@ -7,6 +7,85 @@
 	$(document).ready(function() {
 
 		var $form = $('#poststuff').parent('form');
+
+		// Permalink
+		var is_permalink_saved = false;
+
+		if ($('#permalink').text() != '@title') {
+			is_permalink_saved = true;
+		}
+
+		$('#title').keyup(function() {
+			if (is_permalink_saved) return;
+
+			var title = $(this).val();
+			if (!title) title = '@title';
+
+			title = title.toLowerCase().replace(/\s/g, '-').replace(/[,:]*/g, '');
+
+			$('#permalink').text(title);
+		});
+		$('#edit-permalink').click(function () {
+			$('#permalink, #edit-permalink').hide();
+			$('#save-permalink, #cancel-permalink').show();
+
+			$('<input/>').attr({
+				type: 'text',
+				'id': 'new-permalink'
+			}).val($('#permalink').text()).insertAfter('#permalink');
+		});
+		$('#save-permalink').click(function () {
+			is_permalink_saved = true;
+			var permalink = $('#new-permalink').val();
+
+			$('#permalink').text(permalink);
+			$('input[name="permalink"]').val(permalink);
+
+			$('#cancel-permalink').click();
+		});
+		$('#cancel-permalink').click(function () {
+			$('#permalink, #edit-permalink').show();
+			$('#new-permalink').remove();
+			$('#save-permalink, #cancel-permalink').hide();
+		});
+
+		// Tags
+		$('#add-tags').click(function () {
+			var value = $('input[name="tags"]').val();
+			var tags = value ? value.split(',') : [];
+			var newTags = $('#tagsinput').val().split(',');
+
+			if (!$('#tagsinput').val()) return;
+
+			_.each(newTags, function (tag) {
+				tag = $.trim(tag);
+
+				if (_.indexOf(tags, tag) == -1) {
+					tags.push(tag);
+
+					var $tag = $('<span>\
+						<a class="ntdelbutton" data-tag="'+ tag + '">X</a>\
+						' + tag + '\
+					</span>');
+
+					$tag.find('a').click(function () {
+						$tag.remove();
+
+						tags = _.without(tags, $(this).data('tag'));
+						$('input[name="tags"]').val(tags.join(','));
+					});
+
+					$tag.appendTo('#tags');
+				}
+			});
+
+			$('input[name="tags"]').val(tags.join(','));
+			$('#tagsinput').val('');
+		});
+
+		if ($('#tagsinput').val() != '') {
+			$('#add-tags').click();
+		}
 		
 		// On-Page SEO
 		$('#on-page-seo').change(function() {
@@ -17,7 +96,7 @@
 			}
 		});
 
-		// On-Page SEO
+		// Schema
 		$('#schema').change(function() {
 			if ($(this).is(':checked')) {
 				$('#schema-wrap').show();
@@ -182,7 +261,7 @@
 				var local_country = $form.find('#local-country').val();
 			}
 
-			$.each(localSEOFields, function(i, field) {
+			/*$.each(localSEOFields, function(i, field) {
 				localSEOErrors[field] = [];
 				var value = $('[name="'+ field + '"]').val();
 
@@ -201,7 +280,7 @@
 						}
 					});
 				}
-			});
+			});*/
 
 			$form.find('[local-seo-error]').remove();
 			

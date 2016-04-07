@@ -155,7 +155,7 @@ var ImageScraper = {
 			images: images
 		}).done(function(response) {
 			if (response.success) {
-				ImageScraper.hideOverlays();
+				Dialog.hideOverlays('ImageScraper');
 				ImageScraper.deselect();
 
 				jQuery('#create-shortcode-btn').notify('Successfully created', 'success');

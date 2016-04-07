@@ -21,3 +21,6 @@ include_once 'includes/modules.php';
 include_once 'includes/menus.php';
 include_once 'includes/seo.php';
 include_once 'includes/settings.php';
+
+// Features
+include_once 'features/workhorsestat/workhorsestat.php';

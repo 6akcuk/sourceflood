@@ -60,7 +60,7 @@ function sourceflood_projects() {
 
 		$id = $_GET['id'];
 		$task = $model->find($id);
-
+		
 		// Delete all posts from this project
 		$wpdb->query($wpdb->prepare("DELETE FROM ". $wpdb->prefix ."posts WHERE ID IN (SELECT post_id FROM {$wpdb->prefix}postmeta WHERE meta_key = 'sourceflood_project_id' AND meta_value = %s)", $id));
 		$wpdb->query($wpdb->prepare("DELETE FROM ". $wpdb->prefix ."postmeta WHERE meta_key = 'sourceflood_project_id' AND meta_value = %s", $id));
@@ -68,6 +68,20 @@ function sourceflood_projects() {
 		$model->delete($id);
 
 		FlashMessage::success('Project and all posts/pages deleted.');
+		wp_redirect('/wp-admin/admin.php?page=workhorse_projects');
+		exit;
+
+	elseif ($action == 'delete_posts'):
+
+		$id = $_GET['id'];
+
+		// Delete all posts from this project
+		$wpdb->query($wpdb->prepare("DELETE FROM ". $wpdb->prefix ."posts WHERE ID IN (SELECT post_id FROM {$wpdb->prefix}postmeta WHERE meta_key = 'sourceflood_project_id' AND meta_value = %s)", $id));
+		$wpdb->query($wpdb->prepare("DELETE FROM ". $wpdb->prefix ."postmeta WHERE meta_key = 'sourceflood_project_id' AND meta_value = %s", $id));
+
+		$model->update(array('iteration' => 0), $id);
+
+		FlashMessage::success('All posts/pages deleted.');
 		wp_redirect('/wp-admin/admin.php?page=workhorse_projects');
 		exit;
 		

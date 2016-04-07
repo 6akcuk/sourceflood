@@ -15,6 +15,51 @@ function sourceflood_configured() {
 	return defined('DISABLE_WP_CRON');
 }
 
+function workhorse_permalink($previous = null) {
+	$permalink = get_option('permalink_structure');
+
+	$rewritecode = array(
+		'%year%',
+		'%monthnum%',
+		'%day%',
+		'%hour%',
+		'%minute%',
+		'%second%',
+		'%postname%',
+		'%post_id%',
+		'%category%',
+		'%author%',
+		'%pagename%',
+	);
+
+	$date = explode(" ",date('Y m d H i s', time()));
+	$rewritereplace =
+	array(
+		$date[0],
+		$date[1],
+		$date[2],
+		$date[3],
+		$date[4],
+		$date[5],
+		'@title',
+		'@id',
+		'@category',
+		'@author',
+		'@title',
+	);
+
+	$permalink = home_url( str_replace($rewritecode, $rewritereplace, $permalink) );
+
+	// Add span tag
+	$permalink = str_replace('@title', '<span id="permalink">@title</span>', $permalink);
+
+	if ($previous) {
+		$permalink = str_replace('@title', $previous, $permalink);
+	}
+
+	return $permalink;
+}
+
 /**
  * Get current iteration for field.
  */
@@ -31,6 +76,121 @@ function sourceflood_get_current_subiteration($current, $submax) {
  */
 function sourceflood_get_spintax_subiteration($max, $project, $iteration) {
 	return $max < $project->spintax_iterations ? sourceflood_get_current_subiteration($iteration, $max) : $iteration;
+}
+
+function workhorse_search_geotags($fields) {
+	$tags = array();
+
+	foreach ($fields as $field) {
+		if (sizeof($tags) == 4) break;
+
+		preg_match_all("/(@zip(?![a-z\-])|@city(?![a-z\-])|@stateshort(?![a-z\-])|@state(?![a-z\-]))/", $field, $matches);
+
+		if (isset($matches[1])) {
+			if (!is_array($matches[1])) $matches[1] = array($matches[1]);
+			foreach ($matches[1] as $match) {
+				if (!in_array($match, $tags)) $tags[] = str_replace('@', '', $match);
+			}
+		}
+	}
+
+	$tags = array_unique($tags);
+	return $tags;
+}
+
+function workhorse_expand_geodata($country, $geodata, $tags) {
+	global $wpdb;
+
+	sort($geodata);
+	$tweaked = [];
+
+	foreach ($geodata as $key => $loc) {
+		if ($country == 'us') {
+			// Only state
+			if (preg_match("/^[A-z]{2}$/", $loc)) {
+				if (in_array('city', $tags) || in_array('zip', $tags)) {
+					if ((isset($geodata[$key + 1]) && !preg_match("/^$loc/", $geodata[$key + 1])) || !isset($geodata[$key + 1])) {
+						$cities = $wpdb->get_results("SELECT id, zip FROM {$wpdb->prefix}sourceflood_us_cities WHERE state_code = '$loc' AND 1=1");
+
+						foreach ($cities as $city) {
+							if (in_array('zip', $tags))	$tweaked[] = "$loc/{$city->id}/{$city->zip}";
+							elseif (in_array('city', $tags)) $tweaked[] = "$loc/{$city->id}";
+						}
+					}
+				} else {
+					$tweaked[] = $loc;
+				}
+			}
+			// Only city
+			elseif (preg_match("/^([A-z]{2})\/(\d+)$/", $loc, $loccy)) {
+				if (in_array('zip', $tags)) {
+					if ((isset($geodata[$key + 1]) && !preg_match("/^$loccy[1]\/$loccy[2]/", $geodata[$key + 1])) || !isset($geodata[$key + 1])) {
+						$city = $wpdb->get_row("SELECT city FROM {$wpdb->prefix}sourceflood_us_cities WHERE id = {$loccy[2]}");
+						$zippy = $wpdb->get_results("SELECT zip FROM {$wpdb->prefix}sourceflood_us_cities WHERE state_code = '$loccy[1]' AND city = '{$city->city}' AND 1=1");
+
+						foreach ($zippy as $zip) {
+							$tweaked[] = "$loc/{$zip->zip}";
+						}
+					}
+				} else {
+					$tweaked[] = $loc;
+				}
+			}
+			// Everything else
+			else {
+				$parts = explode("/", $loc);
+
+				if (!in_array('zip', $tags) && !in_array('city', $tags)) $tweaked[] = $parts[0];
+				elseif (!in_array('zip', $tags) && in_array('city', $tags)) $tweaked[] = "$parts[0]/$parts[1]";
+				else $tweaked[] = $loc;
+			}
+		}
+		elseif ($country == 'uk') {
+			// Only state
+			if (preg_match("/^\d+$/", $loc)) {
+				if (in_array('city', $tags) || in_array('zip', $tags)) {
+					if ((isset($geodata[$key + 1]) && !preg_match("/^$loc/", $geodata[$key + 1])) || !isset($geodata[$key + 1])) {
+						$cities = $wpdb->get_results("SELECT id, postcode FROM {$wpdb->prefix}sourceflood_uk_cities WHERE region_id = '$loc' AND 1=1");
+
+						foreach ($cities as $city) {
+							if (in_array('zip', $tags))	$tweaked[] = "$loc/{$city->id}/{$city->postcode}";
+							elseif (in_array('city', $tags)) $tweaked[] = "$loc/{$city->id}";
+						}
+					}
+				} else {
+					$tweaked[] = $loc;
+				}
+			}
+			// Only city
+			elseif (preg_match("/^(\d+)\/(\d+)$/", $loc, $loccy)) {
+				if (in_array('zip', $tags)) {
+					if ((isset($geodata[$key + 1]) && !preg_match("/^$loccy[1]\/$loccy[2]/", $geodata[$key + 1])) || !isset($geodata[$key + 1])) {
+						$city = $wpdb->get_row("SELECT name FROM {$wpdb->prefix}sourceflood_uk_cities WHERE id = {$loccy[2]}");
+						$zippy = $wpdb->get_results("SELECT postcode FROM {$wpdb->prefix}sourceflood_uk_cities WHERE region_id = '$loccy[1]' AND name = '{$city->name}' AND 1=1");
+
+						foreach ($zippy as $zip) {
+							$tweaked[] = "$loc/{$zip->postcode}";
+						}
+					}
+				} else {
+					$tweaked[] = $loc;
+				}
+			}
+			// Everything else
+			else {
+				$parts = explode("/", $loc);
+
+				if (!in_array('zip', $tags) && !in_array('city', $tags)) $tweaked[] = $parts[0];
+				elseif (!in_array('zip', $tags) && in_array('city', $tags)) $tweaked[] = "$parts[0]/$parts[1]";
+				else $tweaked[] = $loc;
+			}
+		}
+	}
+
+	// Remove non-used parts of locations
+	$tweaked = array_unique($tweaked);
+	
+	return $tweaked;
 }
 
 /**
@@ -60,7 +220,7 @@ function sourceflood_get_geodata($country, $geopath) {
 
 		$state = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}sourceflood_uk_states WHERE id = ". $path[0]);
 		$result['state'] = $state->name;
-		//$result['stateshort'] = $state['state_code'];
+		$result['stateshort'] = $state->name;
 
 		if (isset($path[1])) {
 			$city = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}sourceflood_uk_cities WHERE id = ". $path[1]);
@@ -89,10 +249,12 @@ function workhorse_check_dir($dir) {
 	$check = WP_CONTENT_DIR;
 
 	foreach ($dirs as $dir) {
+		if (strstr($dir, '.')) continue;
+
 		if (!$check) $check = $dir;
 		else $check .= "/". $dir;
 
-		if (!is_dir($dir)) mkdir($dir);
+		if (!is_dir($check)) mkdir($check);
 	}
 }
 

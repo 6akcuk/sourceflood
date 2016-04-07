@@ -42,9 +42,9 @@ abstract class AbstractModel
 			}
 		}
 
-		$sql = "INSERT INTO ". $this->getTable() ." (". implode(", ", $fields) .")";
+		$sql = "INSERT INTO ". $this->getTable() ." (". implode(", ", $fields) .", created_at)";
 
-		$sql .= " VALUES (". implode(", ", $values) .")";
+		$sql .= " VALUES (". implode(", ", $values) .", NOW())";
 
 		$sql = $wpdb->prepare($sql, $vars);
 		$wpdb->query($sql);

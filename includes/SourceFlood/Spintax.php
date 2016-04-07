@@ -10,9 +10,10 @@ class Spintax
 	public static function parse($content, $parent_key = null) 
 	{
 		preg_match_all("/\{(((?>[^\{\}]+)|(?R))*)\}/x", $content, $spintaxes);
-		
+
 		foreach ($spintaxes[0] as $key => $value) {
-			$content = str_replace($value, '$$'. $key, $content);
+			$value = "/". preg_quote($value, '/') ."/";
+			$content = preg_replace($value, '@@'. $key, $content, 1);
 		}
 
 		$template = $content;
@@ -22,18 +23,18 @@ class Spintax
 		if (strstr($content, '|')) {
 			$strokes = explode('|', $content);
 			$values = array();
-
+			
 			foreach ($strokes as $value) {
-				if (strstr($value, '$$')) {
-					preg_match_all("/\\$\\$(\d+)/i", $value, $varKeys);
+				if (strstr($value, '@@')) {
+					preg_match_all("/\@\@(\d+)/i", $value, $varKeys);
 					$string = $value;
-					
+
 					// Unique keys
 					//$spintaxes[0] = array_unique($spintaxes[0]);
 					//var_dump($spintaxes[0]);
 					
 					foreach ($varKeys[1] as $vark) {
-						$string = str_replace("$$". $vark, $spintaxes[0][$vark], $string);
+						$string = str_replace("@@". $vark, $spintaxes[0][$vark], $string);
 					}
 					
 					$values[] = self::parse($string);
@@ -216,27 +217,28 @@ class Spintax
 		$spintax = $spintax ? $spintax : self::parse($content);
 		$table = self::build($spintax);
 		$max = self::count($spintax);
-		$math = self::math($spintax, $table, $iteration, $max);
+		//$math = self::math($spintax, $table, $iteration, $max);
 
-		return self::renderTemplate($spintax['template'], $spintax['vars'], $math);
+		return self::renderTemplate($spintax['template'], $spintax['vars']);
 	}
 
 	/**
 	 * Renders text from template.
 	 */
-	public static function renderTemplate($template, $vars, $math) 
+	public static function renderTemplate($template, $vars, $math = null) 
 	{
-		preg_match_all("/\\$\\$(\d+)/i", $template, $keys);
+		preg_match_all("/\\@\\@(\d+)/i", $template, $keys);
 
 		if (sizeof($keys[1]) > 0) {
 			foreach ($keys[1] as $key) {
-				$renderValue = $vars[$key][$math[$key]['item'] - 1];
+				$index = $math ? $math[$key]['item'] - 1 : rand(0, sizeof($vars[$key]) - 1);
+				$renderValue = $vars[$key][$index];
 
 				if (is_array($renderValue) && isset($renderValue['template'])) {
-					$renderValue = self::renderTemplate($renderValue['template'], $renderValue['vars'], $math[$key]['subitems'][ $math[$key]['item'] - 1]);
+					$renderValue = self::renderTemplate($renderValue['template'], $renderValue['vars']);
 				}
-
-				$template = str_replace("$$$key", $renderValue, $template);
+				
+				$template = str_replace("@@$key", $renderValue, $template);
 			}
 		}
 		

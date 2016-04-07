@@ -17,7 +17,18 @@ if (!is_admin()) {
 	function sourceflood_seo_callback($buffer) {
 		global $wp_query;
 
-		if (!is_single()) {
+		if (!is_single() && !is_tag()) {
+			return $buffer;
+		}
+
+		if (is_tag()) {
+			$tag = $wp_query->queried_object;
+			$meta = get_term_meta($tag->term_id);
+			
+			if (isset($meta['workhorse_noindex_tag'])) {
+				$buffer = str_replace('</title>', "</title>\n<meta name=\"robots\" content=\"noindex, nofollow\">", $buffer);
+			}
+
 			return $buffer;
 		}
 

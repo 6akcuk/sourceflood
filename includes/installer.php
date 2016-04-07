@@ -1,7 +1,7 @@
 <?php
 
 global $sourceflood_db_version;
-$sourceflood_db_version = '0.3.2';
+$sourceflood_db_version = '0.4';
 
 function sourceflood_update_db_check() {
     global $sourceflood_db_version;
@@ -41,6 +41,9 @@ function workhorse_install() {
 	// Config
 	workhorse_wp_config_put();
 
+	// Roles
+	add_role('workhorse_user', 'Work Horse User');
+
 	// Scheduler
 	//wp_schedule_event(time(), 'every_minute', 'sourceflood_parse_tasks_hook');
 	
@@ -53,7 +56,7 @@ function workhorse_install() {
 		`id` mediumint(9) NOT NULL AUTO_INCREMENT,
 		`name` VARCHAR(255) NOT NULL,
 		`content` MEDIUMTEXT NOT NULL,
-		`options` TEXT NOT NULL,
+		`options` LONGTEXT NOT NULL,
 		`iteration` INT UNSIGNED NOT NULL,
 		`spintax_iterations` INT UNSIGNED NOT NULL,
 		`max_iterations` INT UNSIGNED NOT NULL,
@@ -82,6 +85,9 @@ function workhorse_install() {
 	) $charset_collate;";
 
 	dbDelta($sql);
+
+	// Tags noindex
+
 
 	// Geo codes
 	include_once 'geo/installer.php';
