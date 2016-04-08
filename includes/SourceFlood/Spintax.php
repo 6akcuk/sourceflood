@@ -248,7 +248,7 @@ class Spintax
 	public static function geo($text, $geo) 
 	{
 		foreach ($geo as $tag => $value) {
-			$text = preg_replace("/@$tag(?![a-z\-])/", $value, $text);
+			$text = preg_replace("/@$tag(?!short)/", $value, $text);
 		}
 
 		return $text;

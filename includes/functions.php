@@ -84,12 +84,13 @@ function workhorse_search_geotags($fields) {
 	foreach ($fields as $field) {
 		if (sizeof($tags) == 4) break;
 
-		preg_match_all("/(@zip(?![a-z\-])|@city(?![a-z\-])|@stateshort(?![a-z\-])|@state(?![a-z\-]))/", $field, $matches);
+		preg_match_all("/(@zip|@city|@stateshort|@state)/", $field, $matches);
 
 		if (isset($matches[1])) {
 			if (!is_array($matches[1])) $matches[1] = array($matches[1]);
 			foreach ($matches[1] as $match) {
-				if (!in_array($match, $tags)) $tags[] = str_replace('@', '', $match);
+				$tag = str_replace('@', '', $match);
+				if (!in_array($tag, $tags)) $tags[] = $tag;
 			}
 		}
 	}
@@ -110,7 +111,7 @@ function workhorse_expand_geodata($country, $geodata, $tags) {
 			if (preg_match("/^[A-z]{2}$/", $loc)) {
 				if (in_array('city', $tags) || in_array('zip', $tags)) {
 					if ((isset($geodata[$key + 1]) && !preg_match("/^$loc/", $geodata[$key + 1])) || !isset($geodata[$key + 1])) {
-						$cities = $wpdb->get_results("SELECT id, zip FROM {$wpdb->prefix}sourceflood_us_cities WHERE state_code = '$loc' AND 1=1");
+						$cities = $wpdb->get_results("SELECT id, zip FROM {$wpdb->prefix}sourceflood_us_cities WHERE state_code = '$loc' AND 1=1". (!in_array('zip', $tags) ? ' GROUP BY city, county' : ''));
 
 						foreach ($cities as $city) {
 							if (in_array('zip', $tags))	$tweaked[] = "$loc/{$city->id}/{$city->zip}";
@@ -150,7 +151,7 @@ function workhorse_expand_geodata($country, $geodata, $tags) {
 			if (preg_match("/^\d+$/", $loc)) {
 				if (in_array('city', $tags) || in_array('zip', $tags)) {
 					if ((isset($geodata[$key + 1]) && !preg_match("/^$loc/", $geodata[$key + 1])) || !isset($geodata[$key + 1])) {
-						$cities = $wpdb->get_results("SELECT id, postcode FROM {$wpdb->prefix}sourceflood_uk_cities WHERE region_id = '$loc' AND 1=1");
+						$cities = $wpdb->get_results("SELECT id, postcode FROM {$wpdb->prefix}sourceflood_uk_cities WHERE region_id = '$loc' AND 1=1". (!in_array('zip', $tags) ? ' GROUP BY name' : ''));
 
 						foreach ($cities as $city) {
 							if (in_array('zip', $tags))	$tweaked[] = "$loc/{$city->id}/{$city->postcode}";
@@ -189,7 +190,7 @@ function workhorse_expand_geodata($country, $geodata, $tags) {
 
 	// Remove non-used parts of locations
 	$tweaked = array_unique($tweaked);
-	
+
 	return $tweaked;
 }
 
@@ -200,10 +201,11 @@ function sourceflood_get_geodata($country, $geopath) {
 	global $wpdb;
 
 	$path = explode('/', $geopath);
-	$result = array('country' => '', 'state' => '', 'stateshort' => '', 'city' => '', 'zip' => '');
+	$result = array('country' => '', 'countryshort' => '', 'state' => '', 'stateshort' => '', 'city' => '', 'zip' => '');
 
 	if ($country == 'us') {
 		$result['country'] = 'United States';
+		$result['countryshort'] = 'US';
 
 		$state = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}sourceflood_us_states WHERE state_code = '". $path[0] ."'");
 		$result['state'] = $state->state;
@@ -217,6 +219,7 @@ function sourceflood_get_geodata($country, $geopath) {
 	}
 	elseif ($country == 'uk') {
 		$result['country'] = 'United Kingdom';
+		$result['countryshort'] = 'UK';
 
 		$state = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}sourceflood_uk_states WHERE id = ". $path[0]);
 		$result['state'] = $state->name;
@@ -232,7 +235,7 @@ function sourceflood_get_geodata($country, $geopath) {
 	return $result;
 }
 
-function sourceflood_spintax_the_field($value, $project, $spintaxIteration, $geo = false) {
+function sourceflood_spintax_the_field($value, $project, $spintaxIteration, $geo = false, $geoData = null) {
 	$spintax = Spintax::parse($value);
 	$max = Spintax::count($spintax);
 

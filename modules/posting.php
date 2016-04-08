@@ -145,13 +145,12 @@ function sourceflood_posting()
 		}
 
 		// Math maximum number of posts
-		$max = 1;
 		if (isset($_POST['local_seo_enabler'])) {
-			$max = $geo_iterations;
+			$max = ($_POST['max_posts'] <= 0) ? $geo_iterations : intval($_POST['max_posts']);
 		} else {
 			$max = ($_POST['max_posts'] <= 0) ? max($iterations) : intval($_POST['max_posts']);
 		}
-		
+
 		$data = array(
 			'name' => $name,
 			'content' => json_encode($project_data),
@@ -161,7 +160,7 @@ function sourceflood_posting()
 			//'max_iterations' => max($iterations) * $geo_iterations
 			'max_iterations' => $max
 		);
-		
+
 		$project_id = $model->create($data);
 
 		FlashMessage::success('Project successfully created. It will generate '. $data['max_iterations'] .' posts/pages.');

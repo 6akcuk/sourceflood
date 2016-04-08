@@ -259,28 +259,13 @@
 			if ($form.find('#local-seo-enabler').is(':checked')) {
 				var locations = $form.find('#jstree').jstree(true).get_checked();
 				var local_country = $form.find('#local-country').val();
+
+				if (parseInt($form.find('#max-posts').val()) > 0) {
+					if (!confirm('There maybe more combinations in the local SEO area than you typed in max posts. Continue?')) {
+						e.preventDefault();
+					}
+				}
 			}
-
-			/*$.each(localSEOFields, function(i, field) {
-				localSEOErrors[field] = [];
-				var value = $('[name="'+ field + '"]').val();
-
-				if (field == 'content') {
-					value = tinymce.get('content').getContent();
-				}
-
-				var founded = value.match(/(@zip(?![a-z\-])|@city(?![a-z\-])|@stateshort(?![a-z\-])|@state(?![a-z\-])|@country(?![a-z\-]))/gi);
-				if (founded) {
-					$.each(founded, function(i, tag) {
-						tag = tag.replace(/@/, '');
-
-						if (allowedLocalSEO[tag] == 0) {
-							localSEOHasError = true;
-							localSEOErrors[field].push('You cannot use <strong>@' + tag + '</strong>. Please remove tag or select in locations.');
-						}
-					});
-				}
-			});*/
 
 			$form.find('[local-seo-error]').remove();
 			

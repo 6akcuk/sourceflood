@@ -1,7 +1,7 @@
 <?php
 
 global $sourceflood_db_version;
-$sourceflood_db_version = '0.4';
+$sourceflood_db_version = '0.4.1';
 
 function sourceflood_update_db_check() {
     global $sourceflood_db_version;
@@ -78,7 +78,7 @@ function workhorse_install() {
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
 		shortcode VARCHAR(255) NOT NULL,
 		type VARCHAR(40) NOT NULL,
-		content TEXT NOT NULL,
+		content LONGTEXT NOT NULL,
 		created_at TIMESTAMP NOT NULL,
 		updated_at TIMESTAMP NOT NULL,
 		UNIQUE KEY id (id)

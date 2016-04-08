@@ -36,18 +36,20 @@ function workhorse_builder() {
 	$posts = 1;
 	$geo = isset($options['local_geo_country']);
 
+	$post_date = date('Y-m-d H:i:s');
+
 	// Use Dripfeed
 	if (isset($options['dripfeed_type'])) {
 		switch ($options['dripfeed_type']) {
 			case 'per-day':
-				$interval = 1440 / $options['dripfeed_x'];
+				$per_day = $options['dripfeed_x'];
 				break;
 			case 'over-days':
-				$interval = $project->max_iteration / (1440 * $options['dripfeed_x']);
+				$per_day = ceil($project->max_iterations / $options['dripfeed_x']);
 				break;
 		}
 	} else {
-		$interval = 0;
+		$per_day = $project->max_iterations;
 	}
 
 	$data = json_decode($project->content, true);
@@ -69,10 +71,12 @@ function workhorse_builder() {
 		$exifLocations = json_decode($options['exif_locations']);
 	}
 
-	$start_date = time();
+	$start_date = new DateTime();
+	$current_per_day = 0;
 
 	for ($i = 1; $i <= $posts; $i++) {	
 		$project->iteration++;
+		$current_per_day++;
 		
 		if ($project->iteration == $project->max_iterations + 1) {
 			$project->iteration = $project->max_iterations;
@@ -179,10 +183,17 @@ function workhorse_builder() {
 			$author_id = $wpdb->get_row("SELECT user_id FROM {$wpdb->prefix}usermeta WHERE meta_key = 'workhorse_user' ORDER BY RAND() LIMIT 1")->user_id;
 		}
 
+		if (isset($options['dripfeed_type'])) {
+			$date_start = strtotime($start_date->format('Y-m-d') .' 00:00:00');
+			$date_end = strtotime($start_date->format('Y-m-d') .' 23:59:59');
+
+			$post_date = date('Y-m-d H:i:s', rand($date_start, $date_end));
+		}
+
 		$post_id = wp_insert_post([
             'post_title' => $titleText,
             'post_name' => sanitize_title($postName),
-            'post_date' => date('Y-m-d H:i:s', $start_date),
+            'post_date' => $post_date,
             'post_author' => $author_id,
             'post_content' => $contentText,
             'post_status' => $interval == 0 ? 'publish' : 'future',
@@ -195,36 +206,36 @@ function workhorse_builder() {
 
 		// On-Page SEO Section
 		if (isset($options['custom_title'])) {
-			$customTitleText = sourceflood_spintax_the_field($options['custom_title'], $project, $spintaxIteration, $geo);
+			$customTitleText = sourceflood_spintax_the_field($options['custom_title'], $project, $spintaxIteration, $geo, $geoData);
 
 			add_post_meta($post_id, 'sourceflood_custom_title', $customTitleText);
 			add_post_meta($post_id, '_yoast_wpseo_title', $customTitleText); // Yoast SEO
 		}
 		if (isset($options['custom_description'])) {
-			$customDescriptionText = sourceflood_spintax_the_field($options['custom_description'], $project, $spintaxIteration, $geo);
+			$customDescriptionText = sourceflood_spintax_the_field($options['custom_description'], $project, $spintaxIteration, $geo, $geoData);
 
 			add_post_meta($post_id, 'sourceflood_custom_description', $customDescriptionText);
 			add_post_meta($post_id, '_yoast_wpseo_metadesc', $customDescriptionText);
 		}
 		if (isset($options['custom_keywords'])) {
-			$customKeywordsText = sourceflood_spintax_the_field($options['custom_keywords'], $project, $spintaxIteration, $geo);
+			$customKeywordsText = sourceflood_spintax_the_field($options['custom_keywords'], $project, $spintaxIteration, $geo, $geoData);
 
 			add_post_meta($post_id, 'sourceflood_custom_keywords', $customKeywordsText);
 		}
 
 		// Schema Section
 		if (isset($options['schema_business'])) {
-			$schemaBusinessText = sourceflood_spintax_the_field($options['schema_business'], $project, $spintaxIteration, $geo);
+			$schemaBusinessText = sourceflood_spintax_the_field($options['schema_business'], $project, $spintaxIteration, $geo, $geoData);
 
 			add_post_meta($post_id, 'sourceflood_schema_business', $schemaBusinessText);
 		}
 		if (isset($options['schema_description'])) {
-			$schemaDescriptionText = sourceflood_spintax_the_field($options['schema_description'], $project, $spintaxIteration, $geo);
+			$schemaDescriptionText = sourceflood_spintax_the_field($options['schema_description'], $project, $spintaxIteration, $geo, $geoData);
 
 			add_post_meta($post_id, 'sourceflood_schema_description', $schemaDescriptionText);
 		}
 		if (isset($options['schema_email'])) {
-			$schemaEmailText = sourceflood_spintax_the_field($options['schema_email'], $project, $spintaxIteration, $geo);
+			$schemaEmailText = sourceflood_spintax_the_field($options['schema_email'], $project, $spintaxIteration, $geo, $geoData);
 
 			add_post_meta($post_id, 'sourceflood_schema_email', $schemaEmailText);
 		}
@@ -232,7 +243,7 @@ function workhorse_builder() {
 			add_post_meta($post_id, 'sourceflood_schema_telephone', $options['schema_telephone']);
 		}
 		if (isset($options['schema_social'])) {
-			$schemaSocialText = sourceflood_spintax_the_field($options['schema_social'], $project, $spintaxIteration, $geo);
+			$schemaSocialText = sourceflood_spintax_the_field($options['schema_social'], $project, $spintaxIteration, $geo, $geoData);
 
 			add_post_meta($post_id, 'sourceflood_schema_social', $schemaSocialText);
 		}
@@ -240,7 +251,7 @@ function workhorse_builder() {
 			add_post_meta($post_id, 'sourceflood_schema_rating', $options['schema_rating']);
 		}
 		if (isset($options['schema_address'])) {
-			$schemaAddressText = sourceflood_spintax_the_field($options['schema_address'], $project, $spintaxIteration, $geo);
+			$schemaAddressText = sourceflood_spintax_the_field($options['schema_address'], $project, $spintaxIteration, $geo, $geoData);
 
 			add_post_meta($post_id, 'sourceflood_schema_address', $schemaAddressText);
 		}
@@ -273,8 +284,9 @@ function workhorse_builder() {
 
 		$model->update($update, $project->id);
 
-		if ($interval > 0) {
-			$start_date += $interval * 60;
+		if ($current_per_day == $per_day) {
+			$start_date->add(new DateInterval('P1D'));
+			$current_per_day = 0;
 		} else {
 			//$start_date = rand(time() - 43200, time() + 43200);
 		}

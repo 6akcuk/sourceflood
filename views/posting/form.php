@@ -77,11 +77,11 @@ wp_enqueue_script('post');
 							<label for="max-posts">
 								<strong>Max Posts:</strong> <br>
 								<em>
-									Maximum number of posts to generate. It doesn't work if you select Local SEO. <br>
+									Maximum number of posts to generate. <br>
 									Input `0` if you want to generate all available posts from spintax.
 								</em>
 							</label>
-							<input type="text" id="max-posts" name="max_posts" value="1">
+							<input type="number" id="max-posts" name="max_posts" value="0">
 						</p>
 
 						<p>

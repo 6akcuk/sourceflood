@@ -38,7 +38,7 @@
 			</div>
 
 			<button id="create-shortcode-btn" class="button-primary" onclick="ImageScraper.showShortcode(event)">Create shortcode</button>
-			<button class="button-primary" onclick="ImageScraper.post()">Add to post/page</button>
+			<!--<button class="button-primary" onclick="ImageScraper.post()">Add to post/page</button>-->
 		</div>
 	</div>
 </div>
