@@ -3,14 +3,21 @@
 use SourceFlood\View;
 use SourceFlood\License;
 use SourceFlood\Spintax;
+use SourceFlood\Storage;
+use SourceFlood\LiteSpintax;
 use SourceFlood\Models\Task;
+use SourceFlood\ChannelManager;
 
 function workhorse_builder() {
 	global $wpdb;
-
+	global $wp_rewrite;
+	
 	ignore_user_abort(true);
 	@set_time_limit(0);
 	ob_implicit_flush(true);
+
+	ini_set("pcre.backtrack_limit", "23001337");
+	ini_set("pcre.recursion_limit", "23001337");
 
 	$id = $_GET['id'];
 
@@ -26,10 +33,11 @@ function workhorse_builder() {
 	ob_clean();
 	session_write_close();
 
-	echo 'Processing..';
-
+	flush();
 
 	$model = new Task();
+	$model->update(array('deleted_at' => '0000-00-00 00:00:00'), $id);
+
 	$project = $model->find($id);
 
 	$options = json_decode($project->options, true);
@@ -60,8 +68,8 @@ function workhorse_builder() {
 	$titleSpintax = Spintax::parse($data['title']);
 	$titleMax = Spintax::count($titleSpintax);
 
-	$contentSpintax = Spintax::parse($content);
-	$contentMax = Spintax::count($contentSpintax);
+	//$contentSpintax = Spintax::parse($content);
+	//$contentMax = Spintax::count($contentSpintax);
 
 	$posts = $project->max_iterations;
 
@@ -74,18 +82,96 @@ function workhorse_builder() {
 	$start_date = new DateTime();
 	$current_per_day = 0;
 
+	$step = 100;
+	$current_post = 0;
+
+	$storage = new Storage('workhouse');
+
+	// Authors
+	if ($options['distribute']) {
+		$_authors = $wpdb->get_results("SELECT user_id FROM {$wpdb->prefix}usermeta WHERE meta_key = 'workhorse_user' ORDER BY RAND() LIMIT 500");
+		foreach ($_authors as $a) {
+			$authors[] = $a->user_id;
+		}
+		shuffle($authors);
+	}
+
+	// Permalink prefix
+	if (isset($options['permalink_prefix'])) {
+		$prefixes = $storage->permalink_prefixes;
+
+		if (!isset($prefixes[$options['permalink_prefix']])) $prefixes[$options['permalink_prefix']] = [];
+
+		$storage->permalink_prefixes = $prefixes;
+		
+		register_post_type($options['permalink_prefix'],
+			array(
+				'labels' => array(
+					'name' => __(ucfirst($options['permalink_prefix'])),
+					'singular_name' => __(ucfirst($options['permalink_prefix']))
+				),
+				'public' => true,
+				'publicly_queryable' => true,
+				'has_archive' => true,
+				'rewrite' => array('slug' => $options['permalink_prefix'] .'/%category%', 'with_front' => false),
+    			'capability_type' => 'post',
+    			'show_ui' => true,
+    			'query_var' => true,
+    			'hierarchical' => false,
+    			'taxonomies' => array('post_tag', 'category'),
+			)
+		);
+
+		$wp_rewrite->flush_rules(false);
+
+		$storage->flush_rules = true;
+	}
+
+	$wpdb->query('SET autocommit = 0;');
+
+	$lite = new LiteSpintax();
+	$channel_cache = array('state' => array(null, null), 'city' => array(null, null));
+
+	$google_api_key = get_option('workhorse_google_api_key');
+
 	for ($i = 1; $i <= $posts; $i++) {	
 		$project->iteration++;
 		$current_per_day++;
+		$current_post++;
 		
 		if ($project->iteration == $project->max_iterations + 1) {
 			$project->iteration = $project->max_iterations;
 			break;
 		}
 		
+		if (isset($options['permalink_prefix'])) {
+			$data['post_type'] = $options['permalink_prefix'];
+		}
+
 		if ($geo) {
 			$geoIteration = $project->iteration;
 			$geoData = sourceflood_get_geodata($options['local_geo_country'], $options['local_geo_locations'][$geoIteration - 1]);
+
+			// Channel pages
+			if ($geoData['city'] && isset($data['state_channel_page'])) {
+				ChannelManager::create($project->id, $data, $geoData, 'state');
+			}
+
+			if ($geoData['zip'] && isset($data['city_channel_page'])) {
+				ChannelManager::create($project->id, $data, $geoData, 'city');
+			}
+
+			// Save permalink structure for channels
+			if (isset($options['permalink_prefix'])) {
+				$storage = new Storage('workhouse');
+				
+				$prefixes = $storage->permalink_prefixes;
+				if (!sizeof($prefixes[$options['permalink_prefix']])) {
+					$prefixes[$options['permalink_prefix']] = ChannelManager::getPermalinkStructure($project->id);
+
+					$storage->permalink_prefixes = $prefixes;
+				}
+			}
 		}
 
 		// Get current spintax iteration
@@ -93,18 +179,22 @@ function workhorse_builder() {
 
 		// Get current iteration for each field
 		$titleIteration = sourceflood_get_spintax_subiteration($titleMax, $project, $spintaxIteration);
-		$contentIteration = sourceflood_get_spintax_subiteration($contentMax, $project, $spintaxIteration);
+		//$contentIteration = sourceflood_get_spintax_subiteration($contentMax, $project, $spintaxIteration);
 
-		$titleText = Spintax::make($title, $titleIteration, $titleSpintax);
+		$titleText = Spintax::make($title, $titleIteration, $titleSpintax, false);
 		if ($geo) $titleText = Spintax::geo($titleText, $geoData);
 
-		$contentText = Spintax::make($content, $contentIteration, $contentSpintax);
+		$contentText = $lite->process($content);
 		if ($geo) $contentText = Spintax::geo($contentText, $geoData);
 
 		// Images EXIF
 		if (isset($options['exif_locations'])) {
-			$locationIteration = sourceflood_get_current_subiteration($project->iteration, sizeof($exifLocations)) - 1;
-			$address = $exifLocations[$locationIteration]->address;
+			if (isset($options['use_post_location'])) {
+				$address = urlencode($geoData['country'] .', '. $geoData['state'] .', '. $geoData['city'] .', '. $geoData['zip']);
+			} else {
+				$locationIteration = sourceflood_get_current_subiteration($project->iteration, sizeof($exifLocations)) - 1;
+				$address = $exifLocations[$locationIteration]->address;
+			}
 
 			if (!isset($options['exif_cache'])) $options['exif_cache'] = [];
 			if (!isset($options['exif_cache'][$address])) $options['exif_cache'][$address] = [];
@@ -132,30 +222,41 @@ function workhorse_builder() {
 					    $imagedir = 'uploads/'. date('Y') .'/'. date('m') .'/'. $filename;
 						workhorse_check_dir($imagedir);
 
-						//try {
+						// Location coordinates
+						if (isset($options['use_post_location'])) {
+							$response = json_decode(file_get_contents("https://maps.googleapis.com/maps/api/geocode/json?address=$address&key=$google_api_key"));
+
+							if ($response->status == 'OK') {
+								$location = $response->results[0]->geometry->location;
+							}
+						} else {
+							$location = $exifLocations[$locationIteration]->location;
+						}
+
+						if ($location) {
 						    addGpsInfo(
 						    	$imageSrc, 
 						    	WP_CONTENT_DIR .'/'. $imagedir,
 						    	$exif[2][$idx],
 						    	'Work Horse Comment',
 						    	'Work Horse',
-						    	$exifLocations[$locationIteration]->location->lng,
-						    	$exifLocations[$locationIteration]->location->lat,
+						    	$location->lng,
+						    	$location->lat,
 						    	0,
 						    	date('Y-m-d H:i:s')
 					    	);
-				    	//} catch (Exception $e) {}
+						}
 
 				    	$savedir = "/wp-content/$imagedir";
 
 					    // local dev fix
 					    $image = str_replace('.app', '.app:8000', $image);
-
+					    
 				    	$options['exif_cache'][$address][$image] = $savedir;
 					} else {
 						$savedir = $options['exif_cache'][$address][$image];
 					}
-
+					
 			    	$contentText = str_replace($image, $savedir, $contentText);
 				}
 			}
@@ -166,6 +267,10 @@ function workhorse_builder() {
 		if (!$test || ($test && !$test->id)) {
 			echo '<h3>Project stopped by user.</h3>';
 			return;
+		}
+		if ($test && $test->deleted_at == '1970-01-01 11:11:11') {
+			echo '<h3>Project stopped by user.</h3>';
+			break;
 		}
 
 		// Permalink
@@ -180,7 +285,7 @@ function workhorse_builder() {
 		$author_id = 1;
 
 		if (isset($options['distribute'])) {
-			$author_id = $wpdb->get_row("SELECT user_id FROM {$wpdb->prefix}usermeta WHERE meta_key = 'workhorse_user' ORDER BY RAND() LIMIT 1")->user_id;
+			$author_id = $authors[rand(0, sizeof($authors) - 1)];
 		}
 
 		if (isset($options['dripfeed_type'])) {
@@ -188,6 +293,12 @@ function workhorse_builder() {
 			$date_end = strtotime($start_date->format('Y-m-d') .' 23:59:59');
 
 			$post_date = date('Y-m-d H:i:s', rand($date_start, $date_end));
+		}
+
+		if (isset($options['categorization'])) {
+			$last = end($options['categorization']);
+
+			$postName = $geoData[$last];
 		}
 
 		$post_id = wp_insert_post([
@@ -201,6 +312,20 @@ function workhorse_builder() {
             'comment_status' => 'closed',
             'ping_status' => 'closed'
 		]);
+
+		// Categorization
+		if (isset($options['categorization'])) {
+			$tags = $options['categorization'];
+			$category = null;
+
+			foreach ($tags as $tag) {
+				if ($tag == $last) continue;
+
+				$category = wp_create_category($geoData[$tag], $category);
+			}
+
+			wp_set_post_categories($post_id, array($category));
+		}
 
 		add_post_meta($post_id, 'sourceflood_project_id', $project->id);
 
@@ -247,8 +372,16 @@ function workhorse_builder() {
 
 			add_post_meta($post_id, 'sourceflood_schema_social', $schemaSocialText);
 		}
+		if (isset($options['schema_rating_object'])) {
+			$schemaRatingObjectText = sourceflood_spintax_the_field($options['schema_rating_object'], $project, $spintaxIteration, $geo, $geoData);
+
+			add_post_meta($post_id, 'sourceflood_schema_rating_object', $schemaRatingObjectText);
+		}
 		if (isset($options['schema_rating'])) {
 			add_post_meta($post_id, 'sourceflood_schema_rating', $options['schema_rating']);
+		}
+		if (isset($options['schema_rating_count'])) {
+			add_post_meta($post_id, 'sourceflood_schema_rating_count', $options['schema_rating_count']);
 		}
 		if (isset($options['schema_address'])) {
 			$schemaAddressText = sourceflood_spintax_the_field($options['schema_address'], $project, $spintaxIteration, $geo, $geoData);
@@ -274,6 +407,9 @@ function workhorse_builder() {
 			}
 		}
 		
+		// Channel page link
+		ChannelManager::addLink($post_id, $geoData);
+		
 		// Pre-Safe project
 		$update = array(
 			'iteration' => $project->iteration
@@ -284,13 +420,29 @@ function workhorse_builder() {
 
 		$model->update($update, $project->id);
 
+		// Commit
+		if ($current_post == $step) {
+			ChannelManager::save();
+
+			$wpdb->query('COMMIT;');
+			$current_post = 0;
+		}
+
 		if ($current_per_day == $per_day) {
 			$start_date->add(new DateInterval('P1D'));
 			$current_per_day = 0;
 		} else {
 			//$start_date = rand(time() - 43200, time() + 43200);
 		}
+
+		flush();
 	}
+
+	$wpdb->query('COMMIT;');
+
+	$wpdb->query("SET autocommit = 1;");
+
+	ChannelManager::save();
 
 	// Save project changes
 	$update = array(
@@ -305,7 +457,7 @@ function workhorse_builder() {
 		$update['options'] = json_encode($options);
 	}
 
-	//$model->update($update, $project->id);
+	$model->update($update, $project->id);
 
 	View::render('builder.index');
 	return;

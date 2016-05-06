@@ -124,7 +124,7 @@ var ImageScraper = {
 
 		if (ImageScraper.selected.length > 0) {
 			jQuery('div.Pixabay__shortcode-wrap').show();
-			jQuery('#shortcode_name').focus();
+			jQuery('#shortcode-name').focus();
 		} else {
 			jQuery(e.target).notify('Select at least one image', 'error');
 		}
@@ -152,7 +152,7 @@ var ImageScraper = {
 
 		jQuery.post('/index.php?api=workhorse&action=shortcode', {
 			shortcode: name,
-			images: images
+			media: images
 		}).done(function(response) {
 			if (response.success) {
 				Dialog.hideOverlays('ImageScraper');

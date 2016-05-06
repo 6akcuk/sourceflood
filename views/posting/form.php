@@ -6,13 +6,9 @@ wp_enqueue_script('post');
 
 <input type="hidden" name="post_type" value="<?= $post_type ?>">
 <?php
-	$word_ai = get_option('workhorse_word_ai_key');
-
-	if ($word_ai && $word_ai_email = get_option('workhorse_word_ai_email')):
+	$word_ai_pass = get_option('workhorse_word_ai_pass');
+	$word_ai_email = get_option('workhorse_word_ai_email');
 ?>
-<input type="hidden" id="word-ai-email" name="word_ai_email" value="<?= $word_ai_email ?>">
-<input type="hidden" id="word-ai-key" name="word_ai_key" value="<?= $word_ai ?>">
-<?php endif; ?>
 
 <div id="poststuff" class="PostForm">
 	<div id="post-body" class="metabox-holder columns-2">
@@ -39,6 +35,7 @@ wp_enqueue_script('post');
 					<span><?= workhorse_permalink($old_permalink) ?></span>
 					<a id="edit-permalink" class="button button-small" aria-label="Edit permalink">Edit</a>
 					<a id="save-permalink" class="button button-small" style="display: none">OK</a>
+					<a id="prefix-permalink" class="button button-small button-primary" style="display: none;">Add Prefix</a>
 					<a id="cancel-permalink" class="cancel button-link" style="display: none">Cancel</a>
 				</div>
 			</div>
@@ -156,6 +153,48 @@ wp_enqueue_script('post');
 					</div>
 				</div>
 
+				<?php if ($word_ai_email && $word_ai_pass): ?>
+				<!-- Word AI -->
+				<div class="postbox">
+					<button type="button" class="handlediv button-link" aria-expanded="true">
+						<span class="toggle-indicator" aria-hidden="true"></span>
+					</button>
+					<h2 class="hndle ui-sortable-handle"><span>Word AI Options</span></h2>
+					<div class="inside">
+						<p>
+							<a href="/wp-content/plugins/workhorse/wordai.php" onclick="return WordAI.start(this)">Launch Word AI Console</a>
+						</p>
+					</div>
+				</div>
+				<?php endif; ?>
+
+				<!-- Categorization -->
+				<div class="postbox">
+					<button type="button" class="handlediv button-link" aria-expanded="true">
+						<span class="toggle-indicator" aria-hidden="true"></span>
+					</button>
+					<h2 class="hndle ui-sortable-handle"><span>Work Horse Permalink Structure</span></h2>
+					<div class="inside">
+						<p>
+							<label for="enable_categorization" class="selectit">
+								<input id="enable_categorization" name="enable_categorization" type="checkbox" value="1" <?= Validator::old('enable_categorization') == 1 ? 'checked' : ''; ?>>
+								Enable Categorization
+							</label>
+						</p>
+						<p class="howto">
+							This will create pages like <strong>/plumber/michigan/troy/48098</strong>, instead of <strong>/plumber-michigan-troy-48098</strong> <br>
+							In this case, "plumber" would be the URL prefix	
+						</p>
+						<p>
+							<label for="url-prefix">
+								<strong>URL Prefix</strong>
+								<br>
+							</label>
+							<input type="text" name="permalink_prefix" value="<?= Validator::old('permalink_prefix') ?>">
+						</p>
+					</div>
+				</div>
+
 				<!-- Images Scraper -->
 				<div class="postbox">
 					<button type="button" class="handlediv button-link" aria-expanded="true">
@@ -181,9 +220,18 @@ wp_enqueue_script('post');
 							</div>
 						<?php endif; ?>
 
-						<p id="exif-wrap" style="display: <?= $old_exif_enabler == 1 ? 'block' : 'none' ?>">
-							<a href="/index.php?api=workhorse&action=exif" onclick="return ImageEXIF.start(this)">Set Locations For Images</a>
-						</p>
+						<div id="exif-wrap" style="display: <?= $old_exif_enabler == 1 ? 'block' : 'none' ?>">
+							<p>
+								<label for="use-post-location" class="selectit">
+									<input id="use-post-location" name="use_post_location" type="checkbox" value="1" <?= Validator::old('use_post_location') == 1 ? 'checked' : ''; ?>>
+									Use Post Location
+								</label>
+							</p>
+
+							<p>
+								<a href="/index.php?api=workhorse&action=exif" onclick="return ImageEXIF.start(this)">Set Locations For Images</a>
+							</p>
+						</div>
 
 						<p>
 							<?php
@@ -197,6 +245,30 @@ wp_enqueue_script('post');
 							<?php else: ?>
 								<div class="PixabayKeyWarning">
 									Please, enter Pixabay API Key in <a href="/wp-admin/admin.php?page=workhorse_settings">Plugin Settings</a>.
+								</div>
+							<?php endif; ?>
+						</p>
+					</div>
+				</div>
+
+				<!-- Videos Scraper -->
+				<div class="postbox">
+					<button type="button" class="handlediv button-link" aria-expanded="true">
+						<span class="toggle-indicator" aria-hidden="true"></span>
+					</button>
+					<h2 class="hndle ui-sortable-handle"><span>Work Horse Videos</span></h2>
+					<div class="inside">
+						<p>
+							<?php
+								$youtube_key = get_option('workhorse_youtube_key');
+								
+								if (!empty($youtube_key)):
+							?>
+							<input type="hidden" id="youtube-api-key" value="<?= $youtube_key ?>">
+							<a href="/wp-content/plugins/workhorse/videoscraper.php" title="Image Scraper" onclick="return VideoScraper.start(this)">Launch Videos Scraper</a>
+							<?php else: ?>
+								<div class="PixabayKeyWarning">
+									Please, enter YouTube API Key in <a href="/wp-admin/admin.php?page=workhorse_settings">Plugin Settings</a>.
 								</div>
 							<?php endif; ?>
 						</p>
@@ -378,10 +450,26 @@ wp_enqueue_script('post');
 									</tr>
 									<tr>
 										<th>
+											<label for="schema-rating-object">Rating Object:</label>
+										</th>
+										<td>
+											<input id="schema-rating-object" name="schema_rating_object" type="text" class="full-width" value="<?= Validator::old('schema_rating_object') ?>">
+										</td>
+									</tr>
+									<tr>
+										<th>
 											<label for="schema-rating">Rating:</label>
 										</th>
 										<td>
 											<input id="schema-rating" name="schema_rating" type="text" class="full-width" value="<?= Validator::old('schema_rating') ?>">
+										</td>
+									</tr>
+									<tr>
+										<th>
+											<label for="schema-rating-count">Rating Count:</label>
+										</th>
+										<td>
+											<input id="schema-rating-count" name="schema_rating_count" type="text" class="full-width" value="<?= Validator::old('schema_rating_count') ?>">
 										</td>
 									</tr>
 									<tr>
@@ -394,6 +482,71 @@ wp_enqueue_script('post');
 									</tr>
 								</tbody>
 								</table>
+							</div>
+						</div>
+					</div>
+
+					<div class="postbox">
+						<button type="button" class="handlediv button-link" aria-expanded="false">
+							<span class="toggle-indicator" aria-hidden="true"></span>
+						</button>
+						<h2 class="hndle ui-sortable-handle"><span>Work Horse Channel Pages</span></h2>
+						<div class="inside">
+							<p>
+								<label for="state-channel-page" class="selectit">
+									<input id="state-channel-page" name="state_channel_page" type="checkbox" value="1" <?= Validator::old('state_channel_page') == 1 ? 'checked' : ''; ?>>
+									<strong>Enable State Channel Pages</strong>
+								</label>
+							</p>
+
+							<div id="state-channel-page-wrap" <?= Validator::old('state_channel_page') == 1 ? '' : 'style="display: none;"'; ?>>
+								<div class="PostForm__title-wrap<?php if (Validator::hasError('state_channel_title')) echo ' PostForm--error' ?>">
+									<input type="text" id="state-channel-title" name="state_channel_title" class="PostForm__title" placeholder="Enter title here" value="<?= Validator::old('state_channel_title') ?>">
+									<?php if (Validator::hasError('state_channel_title')): ?>
+									<span class="PostForm__error"><?= Validator::get('state_channel_title') ?></span>
+									<?php endif; ?>
+								</div>
+
+								<?php wp_editor(Validator::old('state_channel_content'), 'state_channel_content', array(
+									'_content_editor_dfw' => '',
+									'drag_drop_upload' => true,
+									'tabfocus_elements' => 'content-html,save-post',
+									'editor_class' => 'editor-hidden',
+									'editor_height' => 300,
+									'tinymce' => array(
+										'resize' => false,
+										'add_unload_trigger' => false,
+									),
+								)); ?>
+
+							</div>
+
+							<p>
+								<label for="city-channel-page" class="selectit">
+									<input id="city-channel-page" name="city_channel_page" type="checkbox" value="1" <?= Validator::old('state_channel_page') == 1 ? 'checked' : ''; ?>>
+									<strong>Enable City Channel Pages</strong>
+								</label>
+							</p>
+
+							<div id="city-channel-page-wrap" <?= Validator::old('city_channel_page') == 1 ? '' : 'style="display: none;"'; ?>>
+								<div class="PostForm__title-wrap<?php if (Validator::hasError('city_channel_title')) echo ' PostForm--error' ?>">
+									<input type="text" id="city-channel-title" name="city_channel_title" class="PostForm__title" placeholder="Enter title here" value="<?= Validator::old('city_channel_title') ?>">
+									<?php if (Validator::hasError('city_channel_title')): ?>
+									<span class="PostForm__error"><?= Validator::get('city_channel_title') ?></span>
+									<?php endif; ?>
+								</div>
+
+								<?php wp_editor(Validator::old('city_channel_content'), 'city_channel_content', array(
+									'_content_editor_dfw' => '',
+									'drag_drop_upload' => true,
+									'tabfocus_elements' => 'content-html,save-post',
+									'editor_class' => 'editor-hidden',
+									'editor_height' => 300,
+									'tinymce' => array(
+										'resize' => false,
+										'add_unload_trigger' => false,
+									),
+								)); ?>
 							</div>
 						</div>
 					</div>

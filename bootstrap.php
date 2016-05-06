@@ -19,6 +19,7 @@ include_once 'includes/filters.php';
 include_once 'includes/functions.php';
 include_once 'includes/modules.php';
 include_once 'includes/menus.php';
+include_once 'includes/posttypes.php';
 include_once 'includes/seo.php';
 include_once 'includes/settings.php';
 

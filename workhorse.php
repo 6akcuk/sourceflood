@@ -4,7 +4,7 @@ Plugin Name: Work Horse
 Plugin URI: 
 Description: Creates a large number of pages/posts and customize them to rank in Google.
 Author: Work Horse Team
-Version: 0.8
+Version: 1.2
 */
 
 define('SOURCEFLOOD_ROOT', dirname(__FILE__));

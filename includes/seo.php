@@ -72,7 +72,9 @@ if (!is_admin()) {
 			$email = esc_attr(get_post_meta($wp_query->post->ID, 'sourceflood_schema_email', true));
 			$telephone = esc_attr(get_post_meta($wp_query->post->ID, 'sourceflood_schema_telephone', true));
 			$social = esc_attr(get_post_meta($wp_query->post->ID, 'sourceflood_schema_social', true));
+			$rating_object = esc_attr(get_post_meta($wp_query->post->ID, 'sourceflood_schema_rating_object', true));
 			$rating = esc_attr(get_post_meta($wp_query->post->ID, 'sourceflood_schema_rating', true));
+			$rating_count = esc_attr(get_post_meta($wp_query->post->ID, 'sourceflood_schema_rating_count', true));
 			$address = esc_attr(get_post_meta($wp_query->post->ID, 'sourceflood_schema_address', true));
 			
 			if ($business || $description || $email || $telephone || $social || $rating || $address) {
@@ -84,7 +86,9 @@ if (!is_admin()) {
 				if ($social) $schema .= 'Social:<span itemprop="social">'. $social .'</span>';
 				if ($rating) {
 					$schema .= '<div itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
+						<span itemprop="itemReviewed">'. $rating_object .'</span>
 						<span itemprop="ratingValue">'. $rating .'</span>
+						<span itemprop="ratingCount">'. $rating_count .'</span>
 					</div>';
 				}
 

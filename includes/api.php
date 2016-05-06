@@ -105,16 +105,16 @@ if (isset($_GET['api']) && $_GET['api'] == 'workhorse') {
     elseif ($act == 'shortcode') {
     	if (!Validator::validate($_POST, array(
 			'shortcode' => 'required',
-			'images' => 'required'
+			'media' => 'required'
 		))) {
 			header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
     		exit;
 		}
 
     	$shortcode = $_POST['shortcode'];
-    	$images = json_encode($_POST['images']);
-
-    	$sql = $wpdb->prepare("INSERT INTO {$wpdb->prefix}sourceflood_shortcodes (shortcode, type, content) VALUES (%s, %s, %s)", array($shortcode, 'static', $images));
+        $media = json_encode($_POST['media']);
+    	
+    	$sql = $wpdb->prepare("INSERT INTO {$wpdb->prefix}sourceflood_shortcodes (shortcode, type, content) VALUES (%s, %s, %s)", array($shortcode, 'static', $media));
 
     	$wpdb->query($sql);
 
@@ -129,12 +129,24 @@ if (isset($_GET['api']) && $_GET['api'] == 'workhorse') {
     	$text = urlencode($_POST['text']);
     	$quality = $_POST['quality'];
     	$email = urlencode($_POST['email']);
-    	$hash = $_POST['hash'];
+    	$pass = $_POST['pass'];
+
+    	$query = array(
+    		's' => $_POST['text'],
+    		'quality' => $_POST['quality'],
+    		'email' => get_option('workhorse_word_ai_email'),
+    		'pass' => get_option('workhorse_word_ai_pass'),
+    		'nonested' => $_POST['nonested'],
+    		'paragraph' => $_POST['paragraph'],
+    		'nooriginal' => $_POST['nooriginal'],
+    		'protected' => $_POST['protected'],
+    		'output' => 'json'
+		);
     	
 		$ch = curl_init('http://wordai.com/users/turing-api.php');
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt ($ch, CURLOPT_POST, 1);
-		curl_setopt ($ch, CURLOPT_POSTFIELDS, "s=$text&quality=$quality&email=$email&hash=$hash&output=json");
+		curl_setopt ($ch, CURLOPT_POSTFIELDS, http_build_query($query));
 
 		$results = json_decode(curl_exec($ch), true);
 		curl_close ($ch);

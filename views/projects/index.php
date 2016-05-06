@@ -20,7 +20,7 @@ use SourceFlood\View;
 		<tr>
 			<td style="width: 80px"></td>
 			<th>Name</th>
-			<th>Current Post</th>
+			<th>Created Posts</th>
 			<th>Max Posts</th>
 			<th>Created At</th>
 			<th>Last Update</th>
@@ -32,7 +32,7 @@ use SourceFlood\View;
 			<tr<?= $highlight == $project->id ? ' class="WHProject--highlight"' : '' ?>>
 				<td>
 					<?php if ($project->iteration < $project->max_iterations): ?>
-					<a href="/wp-admin/admin.php?page=workhorse_builder&id=<?= $project->id ?>" class="button button-primary" target="_blank">Build posts</a>
+					<a href="/wp-admin/admin.php?page=workhorse_builder&id=<?= $project->id ?>&noheader=true" class="button button-primary" target="_blank">Build posts</a>
 					<?php endif; ?>
 				</td>
 				<td class="column-title has-row-actions">
@@ -40,6 +40,20 @@ use SourceFlood\View;
 						<a class="row-title"><?= $project->name ?></a>
 					</strong>
 					<div class="row-actions">
+						<span class="edit">
+							<a href="<?= admin_url("admin.php?page=workhorse_projects&action=export_urls&id={$project->id}&noheader=true") ?>">
+								Export a list of all posts/pages URLs
+							</a>
+						</span>
+						
+						<br>
+
+						<span class="edit">
+							<a href="<?= admin_url('admin.php?page=workhorse_projects&action=stop&id='. $project->id .'&noheader=true') ?>">
+								Stop process
+							</a>
+						</span>
+						|
 						<span class="trash">
 							<a class="submitdelete" href="<?= admin_url('admin.php?page=workhorse_projects&action=delete&id='. $project->id .'&noheader=true') ?>" onclick="return confirm('This action will delete project and all generated posts/pages')">Delete project and all posts/pages</a>
 						</span>
@@ -66,7 +80,17 @@ use SourceFlood\View;
 					?>
 				</td>
 				<td>
-					<strong><?= ($project->iteration >= $project->max_iterations) ? 'Finished' : 'Processing' ?></strong>
+					<strong>
+						<?php
+							if ($project->iteration >= $project->max_iterations) echo 'Finished';
+							else {
+								$updated = strtotime($project->updated_at);
+								if ($project->deleted_at == '1970-01-01 11:11:11') echo 'Stopped';
+								elseif (time() - $updated > 1200) echo 'Paused';
+								else echo 'Processing';
+							}
+						?>
+					</strong>
 				</td>
 			</tr>
 			<?php endforeach; ?>

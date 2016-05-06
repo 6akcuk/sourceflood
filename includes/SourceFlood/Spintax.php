@@ -10,12 +10,13 @@ class Spintax
 	public static function parse($content, $parent_key = null) 
 	{
 		preg_match_all("/\{(((?>[^\{\}]+)|(?R))*)\}/x", $content, $spintaxes);
-
+		
 		foreach ($spintaxes[0] as $key => $value) {
-			$value = "/". preg_quote($value, '/') ."/";
-			$content = preg_replace($value, '@@'. $key, $content, 1);
+			//$value = "/". preg_quote($value, '/') ."/";
+			//$content = preg_replace($value, '@@'. $key, $content, 1);
+			$content = str_replace($value, '@@'. $key, $content);
 		}
-
+		
 		$template = $content;
 		$vars = array();
 
@@ -212,14 +213,14 @@ class Spintax
 		return $table;
 	}
 
-	public function make($content, $iteration, $spintax = null) 
+	public static function make($content, $iteration, $spintax = null, $rand = true) 
 	{
 		$spintax = $spintax ? $spintax : self::parse($content);
 		$table = self::build($spintax);
 		$max = self::count($spintax);
-		//$math = self::math($spintax, $table, $iteration, $max);
+		if (!$rand) $math = self::math($spintax, $table, $iteration, $max);
 
-		return self::renderTemplate($spintax['template'], $spintax['vars']);
+		return self::renderTemplate($spintax['template'], $spintax['vars'], !$rand ? $math : null);
 	}
 
 	/**

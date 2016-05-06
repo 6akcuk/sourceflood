@@ -316,7 +316,7 @@ function whs_HideNagNotices() {
 
 function whs_load_time()
 {
-	echo "<font size='1'>Page generated in " . timer_stop(0,2) . "s ".get_num_queries()." SQL queries</font>";
+	echo "<font size='1'>Page generated in " . timer_stop(0,2) . "s ".get_num_queries()." SQL queries</font> <br> In-house analytics plugin for WorkHorse is a fork of NewStatPress.";
 }
 
 

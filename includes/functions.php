@@ -84,7 +84,7 @@ function workhorse_search_geotags($fields) {
 	foreach ($fields as $field) {
 		if (sizeof($tags) == 4) break;
 
-		preg_match_all("/(@zip|@city|@stateshort|@state)/", $field, $matches);
+		preg_match_all("/(@zip|@city|@stateshort|@state|@countryshort|@country)/", $field, $matches);
 
 		if (isset($matches[1])) {
 			if (!is_array($matches[1])) $matches[1] = array($matches[1]);

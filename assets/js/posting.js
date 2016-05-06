@@ -8,6 +8,17 @@
 
 		var $form = $('#poststuff').parent('form');
 
+		// Channel pages
+		$('#state-channel-page').change(function () {
+			if ($(this).is(':checked')) $('#state-channel-page-wrap').show();
+			else $('#state-channel-page-wrap').hide();
+		});
+
+		$('#city-channel-page').change(function () {
+			if ($(this).is(':checked')) $('#city-channel-page-wrap').show();
+			else $('#city-channel-page-wrap').hide();
+		});
+
 		// Permalink
 		var is_permalink_saved = false;
 
@@ -211,7 +222,7 @@
 			});
 
 		// Word AI
-		if ($('#word-ai-key').length && $('#word-ai-email').length) {
+		if ($('#word-ai-pass').length && $('#word-ai-email').length) {
 			$('#wp-content-media-buttons').append('\
 				<button type="button" id="word-ai" class="button" data-editor="content">\
 					Word AI\
@@ -222,14 +233,14 @@
 				if (!text) return false;
 
 				var email = $('#word-ai-email').val();
-				var hash = $('#word-ai-key').val();
+				var pass = $('#word-ai-pass').val();
 
 				$(this).text('Processing..').attr('disabled', true);
 				$.post('/index.php?api=workhorse&action=word-ai', {
 					text: text,
 					quality: 'Readable',
 					email: email,
-					hash: hash,
+					pass: pass,
 					output: 'json'
 				}, 'json')
 				.done(function(response) {

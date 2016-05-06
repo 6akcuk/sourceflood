@@ -8,12 +8,14 @@ class License
 
 	public static function checkThatLicenseIsValid() 
 	{
-		return true;
-		
 		$license = get_option('workhorse_license_key');
 		if ($license) {
 			if (!self::$status) {
-				$response = json_decode(file_get_contents("http://workhorselicense.app/api/licenses/$license"));
+				$url = parse_url(get_option('siteurl'));
+				$site = urlencode($url['host']);
+				$license = urlencode($license);
+
+				$response = json_decode(file_get_contents("http://workhorselicense.cookapp.club/api/licenses/?license=$license&site=$site"));
 				self::$status = $response;
 			}
 			

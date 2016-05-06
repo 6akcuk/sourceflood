@@ -13,7 +13,9 @@ if (is_admin()) {
 
 	wp_enqueue_script('workhorse-posting', $assets_dir .'/js/posting.js', array('jquery'));
 	wp_enqueue_script('workhorse-imagescraper', $assets_dir .'/js/imagescraper.js', array('jquery'));
+	wp_enqueue_script('workhorse-videoscraper', $assets_dir .'/js/videoscraper.js', array('jquery'));
 	wp_enqueue_script('workhorse-exif', $assets_dir .'/js/exif.js', array('jquery'));
+	wp_enqueue_script('workhorse-wordai', $assets_dir .'/js/wordai.js', array('jquery'));
 	
 	wp_enqueue_script('workhorse-tree', $assets_dir .'/js/jstree.min.js', array('jquery'));
 	wp_enqueue_script('workhorse-notify', $assets_dir .'/js/notify.js', array('jquery'));

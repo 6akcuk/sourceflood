@@ -84,6 +84,39 @@ function sourceflood_projects() {
 		FlashMessage::success('All posts/pages deleted.');
 		wp_redirect('/wp-admin/admin.php?page=workhorse_projects');
 		exit;
-		
+
+	elseif ($action == 'stop'):
+
+		$id = $_GET['id'];
+
+		$model->update(array('deleted_at' => '1970-01-01 11:11:11'), $id);
+
+		FlashMessage::success('Project stopped. You can continue process by clicking Build posts');
+		wp_redirect('/wp-admin/admin.php?page=workhorse_projects');
+		exit;
+
+	elseif ($action == 'export_urls'):
+
+		$id = $_GET['id'];
+
+		@set_time_limit(0);
+
+		$urls = "";
+		$posts = $wpdb->get_results($wpdb->prepare("SELECT post_id FROM {$wpdb->prefix}postmeta WHERE meta_key = 'sourceflood_project_id' AND meta_value = %s", $id));
+		foreach ($posts as $post) {
+			$urls .= get_permalink($post->post_id) ."\r\n";
+		}
+
+		file_put_contents("project-$id.txt", $urls);
+
+		header('Content-Type: application/octet-stream');
+	    header('Content-Disposition: attachment; filename='.basename("project-$id.txt"));
+	    header('Expires: 0');
+	    header('Cache-Control: must-revalidate');
+	    header('Pragma: public');
+	    header('Content-Length: ' . filesize("project-$id.txt"));
+	    readfile("project-$id.txt");
+		exit;
+
 	endif;
 }

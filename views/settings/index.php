@@ -39,15 +39,21 @@
             </td>
         </tr>
         <tr valign="top">
-            <th scope="row">Word AI API Key</th>
+            <th scope="row">YouTube API Key</th>
             <td>
-                <input type="text" name="workhorse_word_ai_key" style="width: 300px" value="<?php echo get_option('workhorse_word_ai_key'); ?>" />
+                <input type="text" name="workhorse_youtube_key" style="width: 300px" value="<?php echo get_option('workhorse_youtube_key'); ?>" />
             </td>
         </tr>
         <tr valign="top">
             <th scope="row">Word AI Email</th>
             <td>
                 <input type="text" name="workhorse_word_ai_email" style="width: 300px" value="<?php echo get_option('workhorse_word_ai_email'); ?>" />
+            </td>
+        </tr>
+        <tr valign="top">
+            <th scope="row">Word AI Password</th>
+            <td>
+                <input type="text" name="workhorse_word_ai_pass" style="width: 300px" value="<?php echo get_option('workhorse_word_ai_pass'); ?>" />
             </td>
         </tr>
     </table>

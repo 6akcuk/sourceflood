@@ -27,10 +27,17 @@ function sourceflood_handle_shortcode($attributes, $content = null, $called = nu
 
 	$shortcode = $model->getByShortcode($called);
 	if (isJSON($shortcode->content)) {
-		$images = json_decode($shortcode->content);
-		$image = $images[array_rand($images)];
+		$mediaObjects = json_decode($shortcode->content);
+		$media = $mediaObjects[array_rand($mediaObjects)];
 
-		return '<img src="'. $image->url .'" alt="'. $image->tags .'">';
+		// Images
+		if (isset($media->id)) {
+			return '<img src="'. $media->url .'" alt="'. $media->tags .'">';
+		}
+		// Videos
+		if (isset($media->videoId)) {
+			return '<iframe type="text/html" width="640" height="390" src="http://www.youtube.com/embed/'. $media->videoId .'" frameborder="0"></iframe>';
+		}
 	} else return $shortcode->content;
 }
 

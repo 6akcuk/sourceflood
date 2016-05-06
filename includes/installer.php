@@ -35,6 +35,7 @@ function workhorse_wp_config_delete($slash = '') {
 function workhorse_install() {
 	global $wpdb;
 	global $sourceflood_db_version;
+	global $wp_rewrite;
 
 	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
@@ -98,6 +99,9 @@ function workhorse_install() {
 		update_option( "sourceflood_db_version", $sourceflood_db_version );
 	}
 	else add_option('sourceflood_db_version', $sourceflood_db_version);
+
+	// Rebuild URL rules
+	$wp_rewrite->flush_rules();
 }
 
 function workhorse_install_data() {
