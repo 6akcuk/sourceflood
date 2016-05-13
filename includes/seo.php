@@ -76,6 +76,7 @@ if (!is_admin()) {
 			$rating = esc_attr(get_post_meta($wp_query->post->ID, 'sourceflood_schema_rating', true));
 			$rating_count = esc_attr(get_post_meta($wp_query->post->ID, 'sourceflood_schema_rating_count', true));
 			$address = esc_attr(get_post_meta($wp_query->post->ID, 'sourceflood_schema_address', true));
+			$hidden = esc_attr(get_post_meta($wp_query->post->ID, 'sourceflood_hide_schema', true));
 			
 			if ($business || $description || $email || $telephone || $social || $rating || $address) {
 				$schema = '<div itemscope>';
@@ -102,6 +103,10 @@ if (!is_admin()) {
 				if ($description) $schema .= '<span itemprop="description">'. $description .'</span>';
 
 				$schema .= '</div>';
+
+				if ($hidden) {
+					$schema = '<div id="maincontainer"><div id="linkcontainer" style="position:relative;z-index:-10000000000000000">'. $schema .'</div></div>';
+				}
 
 				// Rendering schema
 				$content = $content . $schema;

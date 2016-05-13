@@ -9,6 +9,19 @@
 		var $form = $('#poststuff').parent('form');
 
 		// Channel pages
+		$('#enable_categorization').change(function () {
+			if ($(this).is(':checked')) {
+				$('#channel-howto').hide();
+				$('#state-channel-page, #city-channel-page').attr('disabled', false);
+			} else {
+				if ($('#state-channel-page').is(':checked')) $('#state-channel-page').click();
+				if ($('#city-channel-page').is(':checked')) $('#city-channel-page').click();
+
+				$('#channel-howto').show();
+				$('#state-channel-page, #city-channel-page').attr('disabled', true);
+			}
+		});
+
 		$('#state-channel-page').change(function () {
 			if ($(this).is(':checked')) $('#state-channel-page-wrap').show();
 			else $('#state-channel-page-wrap').hide();

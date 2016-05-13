@@ -128,6 +128,10 @@ function sourceflood_posting()
 			$options_data['schema_rating_count'] = $_POST['schema_rating_count'];
 			$options_data['schema_address'] = $_POST['schema_address'];
 
+			if (isset($_POST['hide_schema'])) {
+				$options_data['hide_schema'] = true;
+			}
+
 			$iterations[] = Spintax::count(Spintax::parse($options_data['schema_business']));
 			$iterations[] = Spintax::count(Spintax::parse($options_data['schema_description']));
 			$iterations[] = Spintax::count(Spintax::parse($options_data['schema_email']));

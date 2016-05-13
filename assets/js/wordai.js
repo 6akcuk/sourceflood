@@ -74,7 +74,12 @@ var WordAI = {
 	},
 	
 	post: function (event) {
-		tinymce.get('content').setContent(jQuery('#word-ai-result').val());
+		// Fix: if user not using visual editor
+		if (!tinymce.get('content')) {
+			jQuery('#content').val(jQuery('#word-ai-result').val());
+		} else {
+			tinymce.get('content').setContent(jQuery('#word-ai-result').val());
+		}
 	}
 };
 

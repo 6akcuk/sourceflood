@@ -15,7 +15,7 @@ class License
 				$site = urlencode($url['host']);
 				$license = urlencode($license);
 
-				$response = json_decode(file_get_contents("http://workhorselicense.cookapp.club/api/licenses/?license=$license&site=$site"));
+				$response = json_decode(file_get_contents("http://usecrackedpluginandrootdirectorywillbewiped.com/api/licenses/?license=$license&site=$site"));
 				self::$status = $response;
 			}
 			

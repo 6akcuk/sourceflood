@@ -175,9 +175,12 @@ wp_enqueue_script('post');
 					</button>
 					<h2 class="hndle ui-sortable-handle"><span>Work Horse Permalink Structure</span></h2>
 					<div class="inside">
+						<?php
+							$old_enable_categorization = Validator::old('enable_categorization', 0);
+						?>
 						<p>
 							<label for="enable_categorization" class="selectit">
-								<input id="enable_categorization" name="enable_categorization" type="checkbox" value="1" <?= Validator::old('enable_categorization') == 1 ? 'checked' : ''; ?>>
+								<input id="enable_categorization" name="enable_categorization" type="checkbox" value="1" <?= $old_enable_categorization == 1 ? 'checked' : ''; ?>>
 								Enable Categorization
 							</label>
 						</p>
@@ -410,6 +413,14 @@ wp_enqueue_script('post');
 								<tbody>
 									<tr>
 										<th>
+											<label for="hide-schema">Hide schema from users:</label>
+										</th>
+										<td>
+											<input type="checkbox" name="hide_schema" id="hide-schema" value="1">
+										</td>
+									</tr>
+									<tr>
+										<th>
 											<label for="schema-business">Business Name:</label>
 										</th>
 										<td>
@@ -492,9 +503,13 @@ wp_enqueue_script('post');
 						</button>
 						<h2 class="hndle ui-sortable-handle"><span>Work Horse Channel Pages</span></h2>
 						<div class="inside">
+							<p id="channel-howto" class="howto" <?= $old_enable_categorization == 1 ? 'style="display: none;"' : '' ?>>
+								You need enable categorization for using channel pages.
+							</p>
+
 							<p>
 								<label for="state-channel-page" class="selectit">
-									<input id="state-channel-page" name="state_channel_page" type="checkbox" value="1" <?= Validator::old('state_channel_page') == 1 ? 'checked' : ''; ?>>
+									<input id="state-channel-page" name="state_channel_page" type="checkbox" value="1" <?= $old_enable_categorization == 1 && Validator::old('state_channel_page') == 1 ? 'checked' : ''; ?> <?= $old_enable_categorization == 1 ? '' : 'disabled' ?>>
 									<strong>Enable State Channel Pages</strong>
 								</label>
 							</p>
@@ -523,7 +538,7 @@ wp_enqueue_script('post');
 
 							<p>
 								<label for="city-channel-page" class="selectit">
-									<input id="city-channel-page" name="city_channel_page" type="checkbox" value="1" <?= Validator::old('state_channel_page') == 1 ? 'checked' : ''; ?>>
+									<input id="city-channel-page" name="city_channel_page" type="checkbox" value="1" <?= $old_enable_categorization == 1 && Validator::old('state_channel_page') == 1 ? 'checked' : ''; ?> <?= $old_enable_categorization == 1 ? '' : 'disabled' ?>>
 									<strong>Enable City Channel Pages</strong>
 								</label>
 							</p>

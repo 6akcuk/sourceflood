@@ -93,7 +93,7 @@ function sourceflood_seo_title($title) {
 
 function workhorse_the_content_filter($content) {
 	global $post;
-
+    
 	if ($post->post_type == 'channel') {
 		$content = str_replace('@citylist', '', $content);
 		$content = str_replace('@ziplist', '', $content);

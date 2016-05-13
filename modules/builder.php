@@ -378,15 +378,22 @@ function workhorse_builder() {
 			add_post_meta($post_id, 'sourceflood_schema_rating_object', $schemaRatingObjectText);
 		}
 		if (isset($options['schema_rating'])) {
-			add_post_meta($post_id, 'sourceflood_schema_rating', $options['schema_rating']);
+			$schemaRating = sourceflood_spintax_the_field($options['schema_rating'], $project, $spintaxIteration, $geo, $geoData);
+
+			add_post_meta($post_id, 'sourceflood_schema_rating', $schemaRating);
 		}
 		if (isset($options['schema_rating_count'])) {
-			add_post_meta($post_id, 'sourceflood_schema_rating_count', $options['schema_rating_count']);
+			$schemaRatingCount = sourceflood_spintax_the_field($options['schema_rating_count'], $project, $spintaxIteration, $geo, $geoData);
+
+			add_post_meta($post_id, 'sourceflood_schema_rating_count', $schemaRatingCount);
 		}
 		if (isset($options['schema_address'])) {
 			$schemaAddressText = sourceflood_spintax_the_field($options['schema_address'], $project, $spintaxIteration, $geo, $geoData);
 
 			add_post_meta($post_id, 'sourceflood_schema_address', $schemaAddressText);
+		}
+		if (isset($options['hide_schema'])) {
+			add_post_meta($post_id, 'sourceflood_hide_schema', 1);
 		}
 
 		// Tags
@@ -426,6 +433,9 @@ function workhorse_builder() {
 
 			$wpdb->query('COMMIT;');
 			$current_post = 0;
+
+			$storage = new Storage('workhouse');
+			$storage->flush_rules = true;
 		}
 
 		if ($current_per_day == $per_day) {
@@ -444,6 +454,9 @@ function workhorse_builder() {
 
 	ChannelManager::save();
 
+	$storage = new Storage('workhouse');
+	$storage->flush_rules = true;
+	
 	// Save project changes
 	$update = array(
 		'iteration' => $project->iteration
