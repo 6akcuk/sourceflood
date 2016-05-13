@@ -112,10 +112,38 @@ if (isset($_GET['api']) && $_GET['api'] == 'workhorse') {
 		}
 
     	$shortcode = $_POST['shortcode'];
-        $media = json_encode($_POST['media']);
-    	
-    	$sql = $wpdb->prepare("INSERT INTO {$wpdb->prefix}sourceflood_shortcodes (shortcode, type, content) VALUES (%s, %s, %s)", array($shortcode, 'static', $media));
 
+        // Download all media files
+        foreach ($_POST['media'] as &$media) {
+            $image = str_replace(':8000', '', $media['url']); // Fix only for local dev
+            $filename = sha1($image .'-'. $shortcode) .'.jpg';
+
+            $exploded = explode('.', $image);
+            $ext = $exploded[count($exploded) - 1]; 
+
+            if (preg_match('/jpg|jpeg/i', $ext))
+                $imageSrc = imagecreatefromjpeg($image);
+            else if (preg_match('/png/i', $ext))
+                $imageSrc = imagecreatefrompng($image);
+            else if (preg_match('/gif/i', $ext))
+                $imageSrc = imagecreatefromgif($image);
+            else if (preg_match('/bmp/i', $ext))
+                $imageSrc = imagecreatefrombmp($image);
+
+            $imagedir = 'uploads/'. date('Y') .'/'. date('m') .'/'. $filename;
+
+            include_once 'functions.php';
+            workhorse_check_dir($imagedir);
+
+            imagejpeg($imageSrc, WP_CONTENT_DIR .'/'. $imagedir);
+
+            $media['url'] = "/wp-content/$imagedir";
+        }
+
+        $media = json_encode($_POST['media']);
+
+    	$sql = $wpdb->prepare("INSERT INTO {$wpdb->prefix}sourceflood_shortcodes (shortcode, type, content) VALUES (%s, %s, %s)", array($shortcode, 'static', $media));
+            
     	$wpdb->query($sql);
 
     	$results['success'] = 1;
